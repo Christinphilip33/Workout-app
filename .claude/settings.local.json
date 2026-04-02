@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cmd /c \"cd /d \"\"D:\\\\Vibe coding\"\" && npm install 2>&1\")",
+      "Bash(npm --version)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
