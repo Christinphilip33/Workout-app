@@ -27,7 +27,7 @@ export default function SetLogger({ defaultWeight = 0, onAdd, exerciseId, nextEx
 
     // Add multiple sets if sets > 1
     for (let i = 0; i < s; i++) {
-      onAdd({ reps: r, weight: w, unit: weightUnit })
+      onAdd({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${i}`, reps: r, weight: w, unit: weightUnit })
     }
     triggerHaptic('LOGGED')
 

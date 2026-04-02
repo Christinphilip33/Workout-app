@@ -178,22 +178,30 @@ export default function ExerciseLibrary() {
   })
 
   const handleAddCustom = async (data) => {
-    const created = await addCustomExercise(data)
-    setShowModal(false)
-    navigate(`/exercises/${created.id}`)
+    try {
+      const created = await addCustomExercise(data)
+      setShowModal(false)
+      navigate(`/exercises/${created.id}`)
+    } catch (err) {
+      console.error('Failed to add custom exercise:', err)
+    }
   }
 
   const handleAddToSession = async (exercise) => {
-    await addExerciseToSession(exercise)
-    
-    // Visual feedback
-    setToastMessage(`Added ${exercise.name} to workout!`)
-    setTimeout(() => setToastMessage(''), 3000)
-    
-    // Auto-Navigation
-    if (autoNavigate) {
-      // Need a small timeout to let the toast be seen or let context settle
-      setTimeout(() => navigate(`/workout/live`), 300)
+    try {
+      await addExerciseToSession(exercise)
+
+      // Visual feedback
+      setToastMessage(`Added ${exercise.name} to workout!`)
+      setTimeout(() => setToastMessage(''), 3000)
+
+      // Auto-Navigation
+      if (autoNavigate) {
+        // Need a small timeout to let the toast be seen or let context settle
+        setTimeout(() => navigate(`/workout/live`), 300)
+      }
+    } catch (err) {
+      console.error('Failed to add exercise to session:', err)
     }
   }
 

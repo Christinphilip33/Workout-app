@@ -2,6 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { triggerHaptic } from '../utils/haptics.js'
 
 export function useRestTimer(onComplete) {
+  const onCompleteRef = useRef(onComplete)
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
@@ -61,7 +65,7 @@ export function useRestTimer(onComplete) {
             setIsRunning(false)
             setIsPaused(false)
             triggerHaptic('REST_DONE')
-            if (onComplete) onComplete()
+            if (onCompleteRef.current) onCompleteRef.current()
             return 0
           }
           return Math.max(0, prev - 1)
@@ -70,7 +74,7 @@ export function useRestTimer(onComplete) {
     }
 
     return clearTimer
-  }, [isRunning, isPaused, timeRemaining, clearTimer, onComplete])
+  }, [isRunning, isPaused, timeRemaining, clearTimer])
 
   // Cleanup on unmount
   useEffect(() => {

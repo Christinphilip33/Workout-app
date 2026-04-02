@@ -30,8 +30,12 @@ export const WorkoutProvider = ({ children }) => {
 
     // Initial load of active session from IndexedDB
     const loadSession = async () => {
-      const session = await db.activeSessions.toCollection().first();
-      if (session) setActiveSession(session);
+      try {
+        const session = await db.activeSessions.toCollection().first();
+        if (session) setActiveSession(session);
+      } catch (err) {
+        console.error('Failed to load active session from IndexedDB:', err);
+      }
     };
     loadSession();
 
@@ -57,18 +61,20 @@ export const WorkoutProvider = ({ children }) => {
   };
 
   const addExerciseToSession = async (exercise) => {
-    // Get current session or initialize new one
-    let currentSession = activeSession || await db.activeSessions.toCollection().first() || initSession();
-
-    // Check if exercise is already added
-    const exists = currentSession.exercises.some(ex => ex.id === exercise.id);
-    if (!exists) {
-      const sessionUpdate = {
-        ...currentSession,
-        exercises: [...currentSession.exercises, { ...exercise, sets: [] }]
-      };
-
-      await saveActiveSession(sessionUpdate);
+    let updatedSession = null;
+    await db.transaction('rw', db.activeSessions, async () => {
+      const currentSession = await db.activeSessions.toCollection().first() || initSession();
+      const exists = currentSession.exercises.some(ex => ex.id === exercise.id);
+      if (!exists) {
+        updatedSession = {
+          ...currentSession,
+          exercises: [...currentSession.exercises, { ...exercise, sets: [] }]
+        };
+        await db.activeSessions.put(updatedSession);
+      }
+    });
+    if (updatedSession) {
+      setActiveSession(updatedSession);
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessions } from '../hooks/useSessions.js'
 import { useExercises } from '../hooks/useExercises.js'
@@ -11,6 +11,11 @@ function SessionModal({ allExercises, onSave, onClose, initialName = '', initial
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
+
+  useEffect(() => {
+    setName(initialName)
+    setSelectedIds(initialSelectedIds)
+  }, [initialName, initialSelectedIds.join(',')])
 
   const isEditing = initialName !== ''
 

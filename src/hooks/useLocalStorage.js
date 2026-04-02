@@ -17,8 +17,6 @@ export function useLocalStorage(key, initialValue) {
       localStorage.setItem(key, JSON.stringify(valueToStore))
     } catch (err) {
       console.error(`localStorage write failed for key "${key}":`, err)
-      const valueToStore = value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
     }
   }
 

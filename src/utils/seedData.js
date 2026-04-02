@@ -21,7 +21,7 @@ export async function seedExerciseLibrary(db) {
   localStorage.removeItem('library_seeded');
 
   const apiKey = import.meta.env.VITE_RAPIDAPI_KEY;
-  if (apiKey) {
+  if (apiKey && import.meta.env.DEV) {
     console.warn(
       '[SECURITY WARNING] VITE_RAPIDAPI_KEY is exposed in your client bundle. ' +
       'Anyone can read it in DevTools. For production, proxy this through a backend server.'
@@ -36,13 +36,15 @@ export async function seedExerciseLibrary(db) {
   }
 
   // ─── Strategy 2: Full API library (optional paid upgrade) ───
+  const abortController = new AbortController();
   try {
     const response = await fetch('https://exercisedb.p.rapidapi.com/exercises?limit=1300', {
       method: 'GET',
       headers: {
         'x-rapidapi-key': apiKey,
         'x-rapidapi-host': 'exercisedb.p.rapidapi.com'
-      }
+      },
+      signal: abortController.signal
     });
 
     if (!response.ok) {

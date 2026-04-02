@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../context/WorkoutContext.jsx';
 import { checkAchievements } from '../utils/analyticsUtils.js';
 
 export default function AchievementBadges() {
   const [achievements, setAchievements] = useState([]);
   const [showOverlay, setShowOverlay] = useState(null);
 
+  const sessionCount = useLiveQuery(() => db.completedSessions.count(), []);
+
   useEffect(() => {
     checkAchievements().then(setAchievements);
-  }, []);
+  }, [sessionCount]);
 
   if (achievements.length === 0) {
     return (

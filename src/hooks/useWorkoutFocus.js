@@ -30,7 +30,7 @@ export const useWorkoutFocus = (inputsCount) => {
       focusInput(currentIndex + 1);
     } else if (nextExerciseId) {
       // Cross-Boundary Superset Jump
-      const nextNode = document.querySelector(`input[data-exercise-id="${nextExerciseId}"]`);
+      const nextNode = document.querySelector(`input[data-exercise-id="${CSS.escape(String(nextExerciseId))}"]`);
       if (nextNode) {
         // Add a micro-delay to ensure any re-renders or layout animations complete
         setTimeout(() => nextNode.focus(), 50);

@@ -74,6 +74,24 @@ function validateImportData(data) {
       if (!session.id || !session.date || !Array.isArray(session.entries)) {
         return { valid: false, error: 'Corrupted session data found in import file' };
       }
+      for (const entry of session.entries) {
+        if (!entry.exerciseId || !Array.isArray(entry.sets)) {
+          return { valid: false, error: 'Corrupted entry data found in import file' };
+        }
+        for (const set of entry.sets) {
+          if (typeof set.reps !== 'number' || typeof set.weight !== 'number' ||
+              set.reps < 0 || set.weight < 0 || set.reps > 10000 || set.weight > 10000) {
+            return { valid: false, error: 'Invalid set data found in import file' };
+          }
+        }
+      }
+    }
+  }
+  if (data.indexedDB?.customExercises) {
+    for (const ex of data.indexedDB.customExercises) {
+      if (!ex.id || typeof ex.id !== 'string' || !ex.name || typeof ex.name !== 'string') {
+        return { valid: false, error: 'Corrupted exercise data found in import file' };
+      }
     }
   }
   return { valid: true };

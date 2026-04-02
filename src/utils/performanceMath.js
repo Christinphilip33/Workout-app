@@ -14,14 +14,16 @@
 export const calculate1RM = (weight, reps) => {
   if (!weight || !reps || reps <= 0) return 0;
   if (reps === 1) return weight;
+  // Cap reps: Brzycki formula breaks at reps >= 37 (division by zero or negative result)
+  const clampedReps = Math.min(reps, 36);
 
-  const epley = weight * (1 + reps / 30);
+  const epley = weight * (1 + clampedReps / 30);
 
-  if (reps > 12) {
+  if (clampedReps > 12) {
     return Math.round(epley * 10) / 10;
   }
 
-  const brzycki = weight * (36 / (37 - reps));
+  const brzycki = weight * (36 / (37 - clampedReps));
   return Math.round(((epley + brzycki) / 2) * 10) / 10;
 };
 

@@ -8,7 +8,7 @@ export function useExercises() {
   const addCustomExercise = async (exercise) => {
     const newExercise = {
       ...exercise,
-      id: `custom-${Date.now()}`,
+      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       isCustom: true,
       category: exercise.category || 'Other',
       muscleGroups: exercise.muscleGroups || [],

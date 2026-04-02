@@ -66,13 +66,18 @@ export default function ActiveWorkout() {
 
   const handleAddSet = async (exerciseId, set) => {
     // Check for PR using local Dexie Intelligence
-    const exercise = exercises.find(ex => ex.id === exerciseId);
-    const prCheck = await checkPR(exerciseId, set, exercise?.sets ?? []);
-    if (prCheck.isNewPR) {
-      setPrDetails(prCheck)
-      setShowPRModal(true)
-      triggerHaptic('PR')
-    } else {
+    try {
+      const exercise = exercises.find(ex => ex.id === exerciseId);
+      const prCheck = await checkPR(exerciseId, set, exercise?.sets ?? []);
+      if (prCheck.isNewPR) {
+        setPrDetails(prCheck)
+        setShowPRModal(true)
+        triggerHaptic('PR')
+      } else {
+        triggerHaptic('LOGGED')
+      }
+    } catch (err) {
+      console.error('PR check failed:', err);
       triggerHaptic('LOGGED')
     }
 
@@ -333,7 +338,7 @@ export default function ActiveWorkout() {
                 <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-900/40 rounded-2xl border border-gray-800/40">
                   {exerciseSets.map((set, idx) => (
                     <span
-                      key={idx}
+                      key={set.id ?? idx}
                       onClick={() => handleRemoveSet(exercise.id, idx)}
                       className="text-sm font-semibold text-gray-200 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 cursor-pointer hover:border-red-400/80 hover:bg-red-400/10 hover:text-red-300 transition-all shadow-sm flex items-center gap-1"
                       title="Click to remove"

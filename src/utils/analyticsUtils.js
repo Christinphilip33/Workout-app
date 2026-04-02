@@ -140,13 +140,13 @@ export async function checkAchievements() {
   // Milestone 4: Consecutive training days
   if (sessions.length >= 2) {
     const sortedDates = sessions
-      .map(s => new Date(s.date).toDateString())
+      .map(s => new Date(s.date).toISOString().split('T')[0])
       .filter((v, i, a) => a.indexOf(v) === i)
-      .sort((a, b) => new Date(a) - new Date(b));
+      .sort();
 
     let maxStreak = 1, streak = 1;
     for (let i = 1; i < sortedDates.length; i++) {
-      const diff = (new Date(sortedDates[i]) - new Date(sortedDates[i - 1])) / 86400000;
+      const diff = (Date.parse(sortedDates[i]) - Date.parse(sortedDates[i - 1])) / 86400000;
       if (diff === 1) {
         streak++;
         maxStreak = Math.max(maxStreak, streak);
