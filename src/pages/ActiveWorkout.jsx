@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSessions } from '../hooks/useSessions.js'
 import { useExercises } from '../hooks/useExercises.js'
 import { useProgress } from '../hooks/useProgress.js'
-import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { useUserLocalStorage } from '../hooks/useUserLocalStorage.js'
 import { useRestTimer } from '../hooks/useRestTimer.js'
 import DraggableWorkoutList from '../components/Workout/DraggableWorkoutList.jsx'
 import SortableExerciseCard from '../components/Workout/SortableExerciseCard.jsx'
@@ -29,11 +29,11 @@ export default function ActiveWorkout() {
   const { checkPR, getAutoRegulationInsights } = useIntelligence()
 
   // Rest timer state
-  const [defaultRestDuration, setDefaultRestDuration] = useLocalStorage('restTimerDuration', 90)
+  const [defaultRestDuration, setDefaultRestDuration] = useUserLocalStorage('restTimerDuration', 90)
   const restTimer = useRestTimer()
 
   // Weight unit preference (kg or lbs)
-  const [weightUnit, setWeightUnit] = useLocalStorage('weightUnit', 'kg')
+  const [weightUnit, setWeightUnit] = useUserLocalStorage('weightUnit', 'kg')
   const toggleWeightUnit = () => setWeightUnit(prev => prev === 'kg' ? 'lbs' : 'kg')
 
   // Determine if we are rendering a historical session or the live Dexie stream
@@ -269,10 +269,11 @@ export default function ActiveWorkout() {
 
   return (
     <div className="max-w-2xl relative">
-      <PRModal 
-        isOpen={showPRModal} 
-        prDetails={prDetails} 
-        onClose={() => setShowPRModal(false)} 
+      <PRModal
+        isOpen={showPRModal}
+        prDetails={prDetails}
+        onClose={() => setShowPRModal(false)}
+        weightUnit={weightUnit}
       />
       
       <FormCueToast

@@ -1,8 +1,8 @@
-import { useLocalStorage } from './useLocalStorage.js'
+import { useUserLocalStorage } from './useUserLocalStorage.js'
 
 export function useSessions() {
-  const [sessions, setSessions] = useLocalStorage('sessions', [])
-  const [workoutLogs, setWorkoutLogs] = useLocalStorage('workoutLogs', [])
+  const [sessions, setSessions] = useUserLocalStorage('sessions', [])
+  const [workoutLogs, setWorkoutLogs] = useUserLocalStorage('workoutLogs', [])
 
   const addSession = (session) => {
     const newSession = {

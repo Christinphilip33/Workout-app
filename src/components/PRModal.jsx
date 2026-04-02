@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 /**
  * A highly animated Glassmorphic Modal for celebrating new Personal Records.
  */
-export default function PRModal({ isOpen, prDetails, onClose }) {
+export default function PRModal({ isOpen, prDetails, onClose, weightUnit = 'kg' }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function PRModal({ isOpen, prDetails, onClose }) {
           You just hit a new all-time <span className="text-white font-bold">{prDetails?.type}</span> record:
         </p>
         <p className="text-5xl font-black text-white mt-4 tracking-tighter shadow-sm" aria-live="polite">
-          {prDetails?.value}<span className="text-2xl text-primary-400 ml-1">kg</span>
+          {prDetails?.value}<span className="text-2xl text-primary-400 ml-1">{weightUnit}</span>
         </p>
 
       </div>

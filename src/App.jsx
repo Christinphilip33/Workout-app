@@ -9,6 +9,7 @@ import ActiveWorkout from './pages/ActiveWorkout.jsx'
 import History from './pages/History.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { WorkoutProvider, db } from './context/WorkoutContext.jsx'
+import { UserProvider } from './context/UserContext.jsx'
 import { seedExerciseLibrary } from './utils/seedData.js'
 import { useEffect, useState } from 'react'
 
@@ -57,23 +58,25 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <WorkoutProvider>
-        <div className="min-h-screen bg-gray-950 text-white">
-          <Navbar />
-          <PageWrapper>
-            <ErrorBoundary fallbackMessage="This page encountered an error. Try navigating to a different page.">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/exercises" element={<ExerciseLibrary />} />
-                <Route path="/exercises/:id" element={<ExerciseDetail />} />
-                <Route path="/sessions" element={<Sessions />} />
-                <Route path="/workout/:sessionId" element={<ActiveWorkout />} />
-                <Route path="/history" element={<History />} />
-              </Routes>
-            </ErrorBoundary>
-          </PageWrapper>
-        </div>
-      </WorkoutProvider>
+      <UserProvider>
+        <WorkoutProvider>
+          <div className="min-h-screen bg-gray-950 text-white">
+            <Navbar />
+            <PageWrapper>
+              <ErrorBoundary fallbackMessage="This page encountered an error. Try navigating to a different page.">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/exercises" element={<ExerciseLibrary />} />
+                  <Route path="/exercises/:id" element={<ExerciseDetail />} />
+                  <Route path="/sessions" element={<Sessions />} />
+                  <Route path="/workout/:sessionId" element={<ActiveWorkout />} />
+                  <Route path="/history" element={<History />} />
+                </Routes>
+              </ErrorBoundary>
+            </PageWrapper>
+          </div>
+        </WorkoutProvider>
+      </UserProvider>
     </ErrorBoundary>
   )
 }

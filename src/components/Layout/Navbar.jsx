@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import SyncIndicator from '../SyncIndicator.jsx'
+import UserSwitcher from '../UserSwitcher.jsx'
 
 const links = [
   {
@@ -60,7 +61,10 @@ export default function Navbar() {
           <span className="font-extrabold text-xl tracking-tight text-gradient flex items-center gap-2" aria-label="Lift to Sweat home">
             <span aria-hidden="true">🏋️</span> Lift to Sweat
           </span>
-          <SyncIndicator />
+          <div className="flex items-center gap-3">
+            <SyncIndicator />
+            <UserSwitcher />
+          </div>
           <div className="flex items-center gap-2" role="navigation">
             {links.map(({ to, label }) => (
               <NavLink
@@ -89,7 +93,10 @@ export default function Navbar() {
           <span className="font-extrabold text-lg tracking-tight text-gradient flex items-center gap-2" aria-label="Lift to Sweat home">
             <span aria-hidden="true">🏋️</span> Lift to Sweat
           </span>
-          <SyncIndicator />
+          <div className="flex items-center gap-2">
+            <SyncIndicator />
+            <UserSwitcher />
+          </div>
         </div>
       </div>
 

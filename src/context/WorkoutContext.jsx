@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import Dexie from 'dexie';
+import { useUser } from './UserContext.jsx';
 
 // Initialize Dexie
 export const db = new Dexie('WorkoutProDB');
@@ -10,11 +11,20 @@ db.version(3).stores({
   exercises: 'id, name, bodyPart, equipment' // New RapidAPI Library
 });
 
+// Version 4: Add userId to support multi-user
+db.version(4).stores({
+  activeSessions: 'id, date, name, state, userId',
+  pendingSyncs: '++id, type, payload, userId',
+  completedSessions: 'id, date, userId',
+  exercises: 'id, name, bodyPart, equipment'
+});
+
 const WorkoutContext = createContext();
 
 export const useWorkoutSync = () => useContext(WorkoutContext);
 
 export const WorkoutProvider = ({ children }) => {
+  const { currentUserId } = useUser();
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [activeSession, setActiveSession] = useState(null);
 
@@ -28,13 +38,31 @@ export const WorkoutProvider = ({ children }) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial load of active session from IndexedDB
+    // Initial load of active session from IndexedDB (filtered by userId)
     const loadSession = async () => {
+      if (!currentUserId) return;
       try {
-        const session = await db.activeSessions.toCollection().first();
-        if (session) setActiveSession(session);
+        const session = await db.activeSessions
+          .where('userId').equals(currentUserId)
+          .first();
+        if (session) {
+          setActiveSession(session);
+        } else {
+          setActiveSession(null);
+        }
       } catch (err) {
-        console.error('Failed to load active session from IndexedDB:', err);
+        // Fallback for old data without userId
+        try {
+          const session = await db.activeSessions.toCollection().first();
+          if (session && !session.userId) {
+            // Migrate old session to current user
+            session.userId = currentUserId;
+            await db.activeSessions.put(session);
+            setActiveSession(session);
+          }
+        } catch (e) {
+          console.error('Failed to load active session from IndexedDB:', e);
+        }
       }
     };
     loadSession();
@@ -43,7 +71,7 @@ export const WorkoutProvider = ({ children }) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [currentUserId]);
 
   // Initialize a new active session structure if one doesn't exist
   const initSession = () => ({
@@ -51,23 +79,32 @@ export const WorkoutProvider = ({ children }) => {
     date: new Date().toISOString(),
     name: 'Live Workout',
     exercises: [], // Array of exercise objects with their sets attached
-    state: 'active'
+    state: 'active',
+    userId: currentUserId
   });
 
   // Save partial session to IndexedDB (basement-proof)
   const saveActiveSession = async (sessionData) => {
-    setActiveSession(sessionData);
-    await db.activeSessions.put(sessionData);
+    const dataWithUser = { ...sessionData, userId: currentUserId };
+    setActiveSession(dataWithUser);
+    await db.activeSessions.put(dataWithUser);
   };
 
   const addExerciseToSession = async (exercise) => {
+    if (!currentUserId) return;
     let updatedSession = null;
     await db.transaction('rw', db.activeSessions, async () => {
-      const currentSession = await db.activeSessions.toCollection().first() || initSession();
+      let currentSession = await db.activeSessions
+        .where('userId').equals(currentUserId)
+        .first();
+      if (!currentSession) {
+        currentSession = initSession();
+      }
       const exists = currentSession.exercises.some(ex => ex.id === exercise.id);
       if (!exists) {
         updatedSession = {
           ...currentSession,
+          userId: currentUserId,
           exercises: [...currentSession.exercises, { ...exercise, sets: [] }]
         };
         await db.activeSessions.put(updatedSession);
@@ -80,8 +117,9 @@ export const WorkoutProvider = ({ children }) => {
 
   // Start a new workout from a session template
   const startSessionFromTemplate = async (templateName, exercises) => {
-    // Clear any existing active session first
-    await db.activeSessions.clear();
+    if (!currentUserId) return null;
+    // Clear any existing active session for this user first
+    await db.activeSessions.where('userId').equals(currentUserId).delete();
 
     const newSession = {
       id: Date.now().toString(),
@@ -91,7 +129,8 @@ export const WorkoutProvider = ({ children }) => {
         ...ex,
         sets: []
       })),
-      state: 'active'
+      state: 'active',
+      userId: currentUserId
     };
 
     await saveActiveSession(newSession);
@@ -121,7 +160,8 @@ export const WorkoutProvider = ({ children }) => {
     // Save to historical completedSessions in Dexie for the Intelligence Layer
     await db.completedSessions.put({
       ...workoutLog,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      userId: currentUserId
     });
 
     if (isOnline) {
@@ -129,7 +169,7 @@ export const WorkoutProvider = ({ children }) => {
       console.log('Syncing directly to cloud:', workoutLog);
     } else {
       // Queue it
-      await db.pendingSyncs.add({ type: 'WORKOUT_FINISHED', payload: workoutLog });
+      await db.pendingSyncs.add({ type: 'WORKOUT_FINISHED', payload: workoutLog, userId: currentUserId });
     }
     await clearActiveSession();
   };

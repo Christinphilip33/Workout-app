@@ -62,116 +62,98 @@ const MUSCLE_REGION_MAP = {
  *   Back: similar centering, body center at x=50%
  */
 const FRONT_REGIONS = [
-  // ── LEFT SHOULDER (DELTOID) ──
-  // Outer x~37.5, inner x~43, top y~20.5, bottom y~26.5
-  { id: 'delt-front', points: '37,21 40,19 43,20 43,26 39,27 36,25' },
+  // ── LEFT SHOULDER (DELTOID) ── tighter, smaller cap shape
+  { id: 'delt-front', points: '38,22 40,20 42,21 42,25 40,26 37,24' },
   // ── RIGHT SHOULDER (DELTOID) ──
-  { id: 'delt-front', points: '63,21 60,19 57,20 57,26 61,27 64,25' },
+  { id: 'delt-front', points: '62,22 60,20 58,21 58,25 60,26 63,24' },
 
-  // ── LEFT PECTORAL ──
-  // x: 41-50, y: 22.5-34
-  { id: 'pec', points: '43,22 50,22 50,32 47,34 42,33 40,28' },
+  // ── LEFT PECTORAL ── tighter oval shape
+  { id: 'pec', points: '44,24 49,24 49,30 47,32 44,31 43,28' },
   // ── RIGHT PECTORAL ──
-  { id: 'pec', points: '57,22 50,22 50,32 53,34 58,33 60,28' },
+  { id: 'pec', points: '56,24 51,24 51,30 53,32 56,31 57,28' },
 
-  // ── LEFT BICEP ──
-  // x: 33-38, y: 26.5-37
-  { id: 'bicep', points: '35,27 38,26 39,28 38,36 36,37 33,35 33,30' },
+  // ── LEFT BICEP ── smaller, more arm-shaped
+  { id: 'bicep', points: '36,28 38,27 38,34 36,35 35,33 35,30' },
   // ── RIGHT BICEP ──
-  { id: 'bicep', points: '65,27 62,26 61,28 62,36 64,37 67,35 67,30' },
+  { id: 'bicep', points: '64,28 62,27 62,34 64,35 65,33 65,30' },
 
-  // ── LEFT FOREARM ──
-  // x: 29-35.5, y: 38-52
-  { id: 'forearm-front', points: '32,38 35,37 36,40 35,48 33,52 30,51 29,46 30,40' },
+  // ── LEFT FOREARM ── narrower
+  { id: 'forearm-front', points: '33,39 35,38 35,46 34,50 31,49 31,44' },
   // ── RIGHT FOREARM ──
-  { id: 'forearm-front', points: '68,38 65,37 64,40 65,48 67,52 70,51 71,46 70,40' },
+  { id: 'forearm-front', points: '67,39 65,38 65,46 66,50 69,49 69,44' },
 
-  // ── ABS / CORE ──
-  // x: 44-56, y: 34-54
-  { id: 'abs', points: '46,34 54,34 55,40 55,50 53,54 50,55 47,54 45,50 45,40' },
+  // ── ABS / CORE ── narrower vertical strip
+  { id: 'abs', points: '47,36 53,36 53,42 53,50 51,53 50,53 49,53 47,50 47,42' },
 
-  // ── LEFT OBLIQUE ──
-  // x: 40.5-44, y: 28-50
-  { id: 'oblique', points: '40,30 43,28 46,34 45,44 44,50 42,52 39,48 38,38' },
+  // ── LEFT OBLIQUE ── smaller side area
+  { id: 'oblique', points: '42,32 44,30 46,36 45,42 44,48 42,48 41,44 41,38' },
   // ── RIGHT OBLIQUE ──
-  { id: 'oblique', points: '60,30 57,28 54,34 55,44 56,50 58,52 61,48 62,38' },
+  { id: 'oblique', points: '58,32 56,30 54,36 55,42 56,48 58,48 59,44 59,38' },
 
-  // ── HIP FLEXORS ──
-  { id: 'hip', points: '42,52 44,50 47,54 50,55 47,58 42,57' },
-  { id: 'hip', points: '58,52 56,50 53,54 50,55 53,58 58,57' },
+  // ── HIP FLEXORS ── smaller
+  { id: 'hip', points: '44,53 46,52 48,54 50,54 48,56 44,56' },
+  { id: 'hip', points: '56,53 54,52 52,54 50,54 52,56 56,56' },
 
-  // ── LEFT ADDUCTOR ──
-  { id: 'adductor', points: '47,58 50,57 50,68 48,72 46,68' },
+  // ── LEFT ADDUCTOR ── narrower
+  { id: 'adductor', points: '48,58 50,58 50,66 49,70 47,66' },
   // ── RIGHT ADDUCTOR ──
-  { id: 'adductor', points: '53,58 50,57 50,68 52,72 54,68' },
+  { id: 'adductor', points: '52,58 50,58 50,66 51,70 53,66' },
 
-  // ── LEFT QUAD ──
-  // x: 40-49.5, y: 57-78.5
-  { id: 'quad', points: '42,57 47,58 46,68 46,74 44,78 42,79 40,76 39,68 40,60' },
+  // ── LEFT QUAD ── tighter thigh shape
+  { id: 'quad', points: '43,59 46,60 46,68 45,74 43,76 42,74 41,68 42,62' },
   // ── RIGHT QUAD ──
-  { id: 'quad', points: '58,57 53,58 54,68 54,74 56,78 58,79 60,76 61,68 60,60' },
+  { id: 'quad', points: '57,59 54,60 54,68 55,74 57,76 58,74 59,68 58,62' },
 
-  // ── LEFT FRONT CALF (TIBIALIS) ──
-  // x: 44-49, y: 81-93.5
-  { id: 'calf-front', points: '43,82 46,80 48,82 48,90 47,94 44,94 43,90' },
+  // ── LEFT FRONT CALF (TIBIALIS) ── smaller
+  { id: 'calf-front', points: '44,82 46,81 47,83 47,89 46,92 44,92 44,88' },
   // ── RIGHT FRONT CALF ──
-  { id: 'calf-front', points: '57,82 54,80 52,82 52,90 53,94 56,94 57,90' },
+  { id: 'calf-front', points: '56,82 54,81 53,83 53,89 54,92 56,92 56,88' },
 ]
 
 const BACK_REGIONS = [
-  // ── TRAPEZIUS ──
-  // x: 42-58, y: 11-23, diamond shape
-  { id: 'trap', points: '50,11 58,16 62,20 50,24 38,20 42,16' },
+  // ── TRAPEZIUS ── tighter diamond
+  { id: 'trap', points: '50,13 56,17 58,20 50,23 42,20 44,17' },
 
-  // ── LEFT REAR DELTOID ──
-  // x: 36-42, y: 19-26
-  { id: 'delt-rear', points: '36,20 40,18 42,20 42,26 39,27 36,25' },
+  // ── LEFT REAR DELTOID ── smaller cap
+  { id: 'delt-rear', points: '38,21 40,19 42,21 42,25 40,26 37,24' },
   // ── RIGHT REAR DELTOID ──
-  { id: 'delt-rear', points: '64,20 60,18 58,20 58,26 61,27 64,25' },
+  { id: 'delt-rear', points: '62,21 60,19 58,21 58,25 60,26 63,24' },
 
-  // ── UPPER BACK / RHOMBOIDS ──
-  // x: 43-57, y: 23-35
-  { id: 'upper-back', points: '44,24 50,22 56,24 57,30 54,35 50,36 46,35 43,30' },
+  // ── UPPER BACK / RHOMBOIDS ── tighter
+  { id: 'upper-back', points: '46,25 50,24 54,25 55,29 53,33 50,34 47,33 45,29' },
 
-  // ── LEFT LAT ──
-  // x: 40-47, y: 28-44
-  { id: 'lat', points: '40,28 44,24 46,30 46,38 44,44 40,46 38,40 38,32' },
+  // ── LEFT LAT ── narrower wing shape
+  { id: 'lat', points: '42,29 45,26 46,31 46,37 44,42 41,43 40,38 41,32' },
   // ── RIGHT LAT ──
-  { id: 'lat', points: '60,28 56,24 54,30 54,38 56,44 60,46 62,40 62,32' },
+  { id: 'lat', points: '58,29 55,26 54,31 54,37 56,42 59,43 60,38 59,32' },
 
-  // ── LEFT TRICEP ──
-  // x: 33-38, y: 24-37
-  { id: 'tricep', points: '34,24 37,23 39,26 38,34 36,37 33,35 33,28' },
+  // ── LEFT TRICEP ── smaller
+  { id: 'tricep', points: '35,25 37,24 38,27 38,33 36,35 34,33 35,28' },
   // ── RIGHT TRICEP ──
-  { id: 'tricep', points: '66,24 63,23 61,26 62,34 64,37 67,35 67,28' },
+  { id: 'tricep', points: '65,25 63,24 62,27 62,33 64,35 66,33 65,28' },
 
-  // ── LEFT BACK FOREARM ──
-  // x: 30-37, y: 38-51
-  { id: 'forearm-back', points: '32,38 36,37 37,40 36,48 34,52 30,51 30,46 31,41' },
+  // ── LEFT BACK FOREARM ── narrower
+  { id: 'forearm-back', points: '33,39 35,38 36,41 35,47 34,50 31,49 32,44' },
   // ── RIGHT BACK FOREARM ──
-  { id: 'forearm-back', points: '68,38 64,37 63,40 64,48 66,52 70,51 70,46 69,41' },
+  { id: 'forearm-back', points: '67,39 65,38 64,41 65,47 66,50 69,49 68,44' },
 
-  // ── LOWER BACK / ERECTORS ──
-  // x: 45-55, y: 36-50
-  { id: 'lower-back', points: '46,36 50,35 54,36 55,42 54,48 50,50 46,48 45,42' },
+  // ── LOWER BACK / ERECTORS ── smaller
+  { id: 'lower-back', points: '47,38 50,37 53,38 54,43 53,47 50,48 47,47 46,43' },
 
-  // ── LEFT GLUTE ──
-  // x: 42-50, y: 48-58
-  { id: 'glute', points: '42,48 46,46 50,48 50,56 48,59 43,58 41,54' },
+  // ── LEFT GLUTE ── tighter rounded shape
+  { id: 'glute', points: '43,50 46,48 50,50 50,55 48,57 44,56 42,53' },
   // ── RIGHT GLUTE ──
-  { id: 'glute', points: '58,48 54,46 50,48 50,56 52,59 57,58 59,54' },
+  { id: 'glute', points: '57,50 54,48 50,50 50,55 52,57 56,56 58,53' },
 
-  // ── LEFT HAMSTRING ──
-  // x: 43-49, y: 60-78
-  { id: 'ham', points: '43,60 48,59 49,64 49,72 47,78 44,78 42,72 42,64' },
+  // ── LEFT HAMSTRING ── narrower
+  { id: 'ham', points: '44,61 47,60 48,65 48,72 46,76 44,76 43,71 43,65' },
   // ── RIGHT HAMSTRING ──
-  { id: 'ham', points: '57,60 52,59 51,64 51,72 53,78 56,78 58,72 58,64' },
+  { id: 'ham', points: '56,61 53,60 52,65 52,72 54,76 56,76 57,71 57,65' },
 
-  // ── LEFT BACK CALF (GASTROCNEMIUS) ──
-  // x: 43-49, y: 79-92
-  { id: 'calf-back', points: '43,80 47,78 49,80 49,88 48,92 44,92 43,88' },
+  // ── LEFT BACK CALF (GASTROCNEMIUS) ── smaller
+  { id: 'calf-back', points: '44,81 46,79 48,81 48,87 47,90 45,90 44,87' },
   // ── RIGHT BACK CALF ──
-  { id: 'calf-back', points: '57,80 53,78 51,80 51,88 52,92 56,92 57,88' },
+  { id: 'calf-back', points: '56,81 54,79 52,81 52,87 53,90 55,90 56,87' },
 ]
 
 function OverlayRegion({ points, isActive, debug = false }) {

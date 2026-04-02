@@ -1,4 +1,4 @@
-import { useLocalStorage } from './useLocalStorage.js'
+import { useUserLocalStorage } from './useUserLocalStorage.js'
 import { getLevelFromSessions } from '../utils/levels.js'
 
 const defaultProgress = () => ({
@@ -9,7 +9,7 @@ const defaultProgress = () => ({
 })
 
 export function useProgress() {
-  const [userProgress, setUserProgress] = useLocalStorage('userProgress', {})
+  const [userProgress, setUserProgress] = useUserLocalStorage('userProgress', {})
 
   const getProgress = (exerciseId) => {
     return userProgress[exerciseId] ?? defaultProgress()

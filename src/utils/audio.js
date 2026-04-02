@@ -15,7 +15,21 @@ export const initAudio = () => {
   }
 }
 
-// Play a pleasant two-tone chime when timer completes
+// Play a single chime tone
+const playChime = (startTime, frequency, duration = 0.25, volume = 0.3) => {
+  const osc = audioContext.createOscillator()
+  const gain = audioContext.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(frequency, startTime)
+  gain.gain.setValueAtTime(volume, startTime)
+  gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+  osc.connect(gain)
+  gain.connect(audioContext.destination)
+  osc.start(startTime)
+  osc.stop(startTime + duration)
+}
+
+// Play a repeating alarm pattern when timer completes (~3 seconds total)
 export const playTimerDone = () => {
   if (!audioContext) {
     initAudio()
@@ -29,41 +43,17 @@ export const playTimerDone = () => {
 
   const now = audioContext.currentTime
 
-  // First tone (higher pitch)
-  const osc1 = audioContext.createOscillator()
-  const gain1 = audioContext.createGain()
-  osc1.type = 'sine'
-  osc1.frequency.setValueAtTime(880, now) // A5
-  gain1.gain.setValueAtTime(0.3, now)
-  gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3)
-  osc1.connect(gain1)
-  gain1.connect(audioContext.destination)
-  osc1.start(now)
-  osc1.stop(now + 0.3)
+  // Play 4 repetitions of a two-tone alert pattern
+  for (let i = 0; i < 4; i++) {
+    const offset = i * 0.7 // Each repetition starts 0.7s apart
 
-  // Second tone (slightly lower, delayed)
-  const osc2 = audioContext.createOscillator()
-  const gain2 = audioContext.createGain()
-  osc2.type = 'sine'
-  osc2.frequency.setValueAtTime(659.25, now + 0.15) // E5
-  gain2.gain.setValueAtTime(0, now)
-  gain2.gain.setValueAtTime(0.3, now + 0.15)
-  gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.5)
-  osc2.connect(gain2)
-  gain2.connect(audioContext.destination)
-  osc2.start(now + 0.15)
-  osc2.stop(now + 0.5)
+    // High tone
+    playChime(now + offset, 880, 0.2, 0.35) // A5
 
-  // Third tone (resolution chord)
-  const osc3 = audioContext.createOscillator()
-  const gain3 = audioContext.createGain()
-  osc3.type = 'sine'
-  osc3.frequency.setValueAtTime(1318.5, now + 0.3) // E6
-  gain3.gain.setValueAtTime(0, now)
-  gain3.gain.setValueAtTime(0.25, now + 0.3)
-  gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.7)
-  osc3.connect(gain3)
-  gain3.connect(audioContext.destination)
-  osc3.start(now + 0.3)
-  osc3.stop(now + 0.7)
+    // Low tone (slightly delayed)
+    playChime(now + offset + 0.25, 659.25, 0.2, 0.3) // E5
+
+    // Resolution tone
+    playChime(now + offset + 0.45, 1046.5, 0.15, 0.25) // C6
+  }
 }
