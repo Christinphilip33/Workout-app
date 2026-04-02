@@ -55,9 +55,10 @@ export function useRestTimer(onComplete) {
     }
   }, [isRunning])
 
-  // Countdown effect
+  // Countdown effect — only depends on isRunning/isPaused, not timeRemaining,
+  // so the interval is created once and runs until stopped (not reset every tick).
   useEffect(() => {
-    if (isRunning && !isPaused && timeRemaining > 0) {
+    if (isRunning && !isPaused) {
       intervalRef.current = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -74,7 +75,7 @@ export function useRestTimer(onComplete) {
     }
 
     return clearTimer
-  }, [isRunning, isPaused, timeRemaining, clearTimer])
+  }, [isRunning, isPaused, clearTimer])
 
   // Cleanup on unmount
   useEffect(() => {

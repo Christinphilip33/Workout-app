@@ -237,7 +237,7 @@ export default function ExerciseDetail() {
                   <div className="flex flex-wrap gap-2">
                     {entry.sets.map((set, i) => (
                       <span key={i} className="text-xs font-semibold text-gray-300 bg-gray-800/80 border border-gray-700/80 rounded-full px-3 py-1.5 shadow-sm">
-                        {set.reps} <span className="text-gray-500 font-normal mx-0.5">×</span> {set.weight}kg
+                        {set.reps} <span className="text-gray-500 font-normal mx-0.5">×</span> {set.weight}{set.unit || 'kg'}
                       </span>
                     ))}
                   </div>

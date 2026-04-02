@@ -80,7 +80,7 @@ function validateImportData(data) {
         }
         for (const set of entry.sets) {
           if (typeof set.reps !== 'number' || typeof set.weight !== 'number' ||
-              set.reps < 0 || set.weight < 0 || set.reps > 10000 || set.weight > 10000) {
+              set.reps < 0 || set.weight < 0 || set.reps > 100 || set.weight > 999) {
             return { valid: false, error: 'Invalid set data found in import file' };
           }
         }

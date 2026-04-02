@@ -185,11 +185,14 @@ export default function Sessions() {
 
     if (exercises.length === 0) return // Don't start empty sessions
 
-    // Initialize the active workout session
-    await startSessionFromTemplate(session.name, exercises)
-
-    // Navigate to the live workout
-    navigate('/workout/live')
+    try {
+      // Initialize the active workout session
+      await startSessionFromTemplate(session.name, exercises)
+      // Navigate to the live workout
+      navigate('/workout/live')
+    } catch (err) {
+      console.error('Failed to start session:', err)
+    }
   }
 
   return (

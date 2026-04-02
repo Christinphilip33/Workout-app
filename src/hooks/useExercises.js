@@ -15,7 +15,12 @@ export function useExercises() {
       bodyPart: exercise.category,
       equipment: exercise.equipment || 'body weight'
     }
-    await db.exercises.put(newExercise)
+    try {
+      await db.exercises.put(newExercise)
+    } catch (err) {
+      console.error('Failed to save custom exercise to IndexedDB:', err)
+      throw err
+    }
     return newExercise
   }
 
