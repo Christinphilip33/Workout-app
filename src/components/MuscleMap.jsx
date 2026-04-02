@@ -1,6 +1,7 @@
 /**
- * MuscleMap - Natural anatomical body illustrations with interactive SVG overlays
- * Uses generated anatomy images as base with positioned SVG highlight regions
+ * MuscleMap - Natural anatomical body illustrations with calibrated SVG overlays
+ * Uses generated anatomy images as base with precisely positioned highlight regions
+ * All coordinates calibrated against the actual image pixel positions
  * 100% local — zero external APIs or costs
  */
 
@@ -54,80 +55,136 @@ const MUSCLE_REGION_MAP = {
   'Supraspinatus': ['delt-front'],
 }
 
-/* ── SVG overlay regions mapped to % positions on the body images ── */
-/* Each region: { id, view: 'front'|'back', polygon points as % of image } */
+/*
+ * Calibrated overlay regions — coordinates as % of image dimensions
+ * Calibrated from actual image analysis:
+ *   Front: head top ~4.5%, feet ~98%, left hand ~26.5%, right hand ~73.5%, body center at x=50%
+ *   Back: similar centering, body center at x=50%
+ */
 const FRONT_REGIONS = [
-  // Pectorals
-  { id: 'pec', points: '38,19 50,17 50,27 47,30 38,29 33,27 32,24' },
-  { id: 'pec', points: '62,19 50,17 50,27 53,30 62,29 67,27 68,24' },
-  // Front deltoids
-  { id: 'delt-front', points: '30,18 38,19 33,27 28,27 25,23' },
-  { id: 'delt-front', points: '70,18 62,19 67,27 72,27 75,23' },
-  // Biceps
-  { id: 'bicep', points: '25,27 28,27 30,36 29,42 25,42 23,36' },
-  { id: 'bicep', points: '75,27 72,27 70,36 71,42 75,42 77,36' },
-  // Forearms (front)
-  { id: 'forearm-front', points: '23,42 25,42 27,52 26,58 22,58 21,52' },
-  { id: 'forearm-front', points: '77,42 75,42 73,52 74,58 78,58 79,52' },
-  // Abs
-  { id: 'abs', points: '45,30 55,30 55,44 53,48 47,48 45,44' },
-  // Obliques / serratus
-  { id: 'oblique', points: '33,27 38,29 45,30 45,44 43,48 36,46 31,40 30,32' },
-  { id: 'oblique', points: '67,27 62,29 55,30 55,44 57,48 64,46 69,40 70,32' },
-  // Hip flexors
-  { id: 'hip', points: '36,46 43,48 47,48 45,52 40,53 35,50' },
-  { id: 'hip', points: '64,46 57,48 53,48 55,52 60,53 65,50' },
-  // Adductors
-  { id: 'adductor', points: '45,52 50,52 50,66 47,68 44,64' },
-  { id: 'adductor', points: '55,52 50,52 50,66 53,68 56,64' },
-  // Quadriceps
-  { id: 'quad', points: '35,50 40,53 45,52 44,64 43,74 40,76 35,74 32,66 32,56' },
-  { id: 'quad', points: '65,50 60,53 55,52 56,64 57,74 60,76 65,74 68,66 68,56' },
-  // Front calves (tibialis)
-  { id: 'calf-front', points: '36,78 42,78 43,88 42,95 38,95 35,88' },
-  { id: 'calf-front', points: '64,78 58,78 57,88 58,95 62,95 65,88' },
+  // ── LEFT SHOULDER (DELTOID) ──
+  // Outer x~37.5, inner x~43, top y~20.5, bottom y~26.5
+  { id: 'delt-front', points: '37,21 40,19 43,20 43,26 39,27 36,25' },
+  // ── RIGHT SHOULDER (DELTOID) ──
+  { id: 'delt-front', points: '63,21 60,19 57,20 57,26 61,27 64,25' },
+
+  // ── LEFT PECTORAL ──
+  // x: 41-50, y: 22.5-34
+  { id: 'pec', points: '43,22 50,22 50,32 47,34 42,33 40,28' },
+  // ── RIGHT PECTORAL ──
+  { id: 'pec', points: '57,22 50,22 50,32 53,34 58,33 60,28' },
+
+  // ── LEFT BICEP ──
+  // x: 33-38, y: 26.5-37
+  { id: 'bicep', points: '35,27 38,26 39,28 38,36 36,37 33,35 33,30' },
+  // ── RIGHT BICEP ──
+  { id: 'bicep', points: '65,27 62,26 61,28 62,36 64,37 67,35 67,30' },
+
+  // ── LEFT FOREARM ──
+  // x: 29-35.5, y: 38-52
+  { id: 'forearm-front', points: '32,38 35,37 36,40 35,48 33,52 30,51 29,46 30,40' },
+  // ── RIGHT FOREARM ──
+  { id: 'forearm-front', points: '68,38 65,37 64,40 65,48 67,52 70,51 71,46 70,40' },
+
+  // ── ABS / CORE ──
+  // x: 44-56, y: 34-54
+  { id: 'abs', points: '46,34 54,34 55,40 55,50 53,54 50,55 47,54 45,50 45,40' },
+
+  // ── LEFT OBLIQUE ──
+  // x: 40.5-44, y: 28-50
+  { id: 'oblique', points: '40,30 43,28 46,34 45,44 44,50 42,52 39,48 38,38' },
+  // ── RIGHT OBLIQUE ──
+  { id: 'oblique', points: '60,30 57,28 54,34 55,44 56,50 58,52 61,48 62,38' },
+
+  // ── HIP FLEXORS ──
+  { id: 'hip', points: '42,52 44,50 47,54 50,55 47,58 42,57' },
+  { id: 'hip', points: '58,52 56,50 53,54 50,55 53,58 58,57' },
+
+  // ── LEFT ADDUCTOR ──
+  { id: 'adductor', points: '47,58 50,57 50,68 48,72 46,68' },
+  // ── RIGHT ADDUCTOR ──
+  { id: 'adductor', points: '53,58 50,57 50,68 52,72 54,68' },
+
+  // ── LEFT QUAD ──
+  // x: 40-49.5, y: 57-78.5
+  { id: 'quad', points: '42,57 47,58 46,68 46,74 44,78 42,79 40,76 39,68 40,60' },
+  // ── RIGHT QUAD ──
+  { id: 'quad', points: '58,57 53,58 54,68 54,74 56,78 58,79 60,76 61,68 60,60' },
+
+  // ── LEFT FRONT CALF (TIBIALIS) ──
+  // x: 44-49, y: 81-93.5
+  { id: 'calf-front', points: '43,82 46,80 48,82 48,90 47,94 44,94 43,90' },
+  // ── RIGHT FRONT CALF ──
+  { id: 'calf-front', points: '57,82 54,80 52,82 52,90 53,94 56,94 57,90' },
 ]
 
 const BACK_REGIONS = [
-  // Trapezius
-  { id: 'trap', points: '37,15 50,12 63,15 65,20 60,22 50,18 40,22 35,20' },
-  // Rear deltoids
-  { id: 'delt-rear', points: '28,20 37,19 35,28 30,29 25,26 24,22' },
-  { id: 'delt-rear', points: '72,20 63,19 65,28 70,29 75,26 76,22' },
-  // Upper back (rhomboids/infraspinatus)
-  { id: 'upper-back', points: '40,22 50,18 60,22 62,28 56,32 50,30 44,32 38,28' },
-  // Lats
-  { id: 'lat', points: '30,29 35,28 38,28 44,32 44,42 40,46 32,42 28,36' },
-  { id: 'lat', points: '70,29 65,28 62,28 56,32 56,42 60,46 68,42 72,36' },
-  // Triceps
-  { id: 'tricep', points: '24,26 28,29 28,38 26,44 22,44 20,38 20,30' },
-  { id: 'tricep', points: '76,26 72,29 72,38 74,44 78,44 80,38 80,30' },
-  // Back forearms
-  { id: 'forearm-back', points: '20,44 22,44 24,54 24,60 20,60 18,54' },
-  { id: 'forearm-back', points: '80,44 78,44 76,54 76,60 80,60 82,54' },
-  // Lower back / erector spinae
-  { id: 'lower-back', points: '44,38 50,36 56,38 56,48 52,52 50,52 48,52 44,48' },
-  // Glutes
-  { id: 'glute', points: '34,48 44,48 48,52 50,52 50,58 46,62 38,60 32,54' },
-  { id: 'glute', points: '66,48 56,48 52,52 50,52 50,58 54,62 62,60 68,54' },
-  // Hamstrings
-  { id: 'ham', points: '32,58 38,60 46,62 47,72 44,80 40,82 34,78 30,70 30,62' },
-  { id: 'ham', points: '68,58 62,60 54,62 53,72 56,80 60,82 66,78 70,70 70,62' },
-  // Back calves (gastrocnemius)
-  { id: 'calf-back', points: '32,84 40,82 43,88 42,96 38,98 33,96 30,90' },
-  { id: 'calf-back', points: '68,84 60,82 57,88 58,96 62,98 67,96 70,90' },
+  // ── TRAPEZIUS ──
+  // x: 42-58, y: 11-23, diamond shape
+  { id: 'trap', points: '50,11 58,16 62,20 50,24 38,20 42,16' },
+
+  // ── LEFT REAR DELTOID ──
+  // x: 36-42, y: 19-26
+  { id: 'delt-rear', points: '36,20 40,18 42,20 42,26 39,27 36,25' },
+  // ── RIGHT REAR DELTOID ──
+  { id: 'delt-rear', points: '64,20 60,18 58,20 58,26 61,27 64,25' },
+
+  // ── UPPER BACK / RHOMBOIDS ──
+  // x: 43-57, y: 23-35
+  { id: 'upper-back', points: '44,24 50,22 56,24 57,30 54,35 50,36 46,35 43,30' },
+
+  // ── LEFT LAT ──
+  // x: 40-47, y: 28-44
+  { id: 'lat', points: '40,28 44,24 46,30 46,38 44,44 40,46 38,40 38,32' },
+  // ── RIGHT LAT ──
+  { id: 'lat', points: '60,28 56,24 54,30 54,38 56,44 60,46 62,40 62,32' },
+
+  // ── LEFT TRICEP ──
+  // x: 33-38, y: 24-37
+  { id: 'tricep', points: '34,24 37,23 39,26 38,34 36,37 33,35 33,28' },
+  // ── RIGHT TRICEP ──
+  { id: 'tricep', points: '66,24 63,23 61,26 62,34 64,37 67,35 67,28' },
+
+  // ── LEFT BACK FOREARM ──
+  // x: 30-37, y: 38-51
+  { id: 'forearm-back', points: '32,38 36,37 37,40 36,48 34,52 30,51 30,46 31,41' },
+  // ── RIGHT BACK FOREARM ──
+  { id: 'forearm-back', points: '68,38 64,37 63,40 64,48 66,52 70,51 70,46 69,41' },
+
+  // ── LOWER BACK / ERECTORS ──
+  // x: 45-55, y: 36-50
+  { id: 'lower-back', points: '46,36 50,35 54,36 55,42 54,48 50,50 46,48 45,42' },
+
+  // ── LEFT GLUTE ──
+  // x: 42-50, y: 48-58
+  { id: 'glute', points: '42,48 46,46 50,48 50,56 48,59 43,58 41,54' },
+  // ── RIGHT GLUTE ──
+  { id: 'glute', points: '58,48 54,46 50,48 50,56 52,59 57,58 59,54' },
+
+  // ── LEFT HAMSTRING ──
+  // x: 43-49, y: 60-78
+  { id: 'ham', points: '43,60 48,59 49,64 49,72 47,78 44,78 42,72 42,64' },
+  // ── RIGHT HAMSTRING ──
+  { id: 'ham', points: '57,60 52,59 51,64 51,72 53,78 56,78 58,72 58,64' },
+
+  // ── LEFT BACK CALF (GASTROCNEMIUS) ──
+  // x: 43-49, y: 79-92
+  { id: 'calf-back', points: '43,80 47,78 49,80 49,88 48,92 44,92 43,88' },
+  // ── RIGHT BACK CALF ──
+  { id: 'calf-back', points: '57,80 53,78 51,80 51,88 52,92 56,92 57,88' },
 ]
 
 function OverlayRegion({ points, isActive }) {
   return (
     <polygon
       points={points}
-      fill={isActive ? 'rgba(34, 197, 94, 0.45)' : 'transparent'}
-      stroke={isActive ? 'rgba(74, 222, 128, 0.7)' : 'transparent'}
-      strokeWidth="0.4"
+      fill={isActive ? 'rgba(34, 197, 94, 0.4)' : 'transparent'}
+      stroke={isActive ? 'rgba(74, 222, 128, 0.6)' : 'transparent'}
+      strokeWidth="0.3"
+      strokeLinejoin="round"
       style={{
         transition: 'fill 0.4s ease, stroke 0.4s ease',
-        filter: isActive ? 'drop-shadow(0 0 6px rgba(34,197,94,0.5))' : 'none',
+        filter: isActive ? 'drop-shadow(0 0 4px rgba(34,197,94,0.45))' : 'none',
       }}
     />
   )
@@ -139,15 +196,15 @@ function BodyView({ label, imageSrc, regions, activeRegions }) {
       <span className="text-[11px] text-gray-500 mb-2 font-semibold tracking-widest uppercase">
         {label}
       </span>
-      <div className="relative" style={{ width: '100%', maxWidth: '160px' }}>
+      <div className="relative" style={{ width: '100%', maxWidth: '180px' }}>
         <img
           src={imageSrc}
           alt={`${label} body anatomy`}
-          className="w-full h-auto rounded-lg"
+          className="w-full h-auto rounded-xl"
           draggable={false}
           style={{ display: 'block' }}
         />
-        {/* SVG overlay positioned exactly on top of the image */}
+        {/* SVG overlay — viewBox matches the 100x100 percentage coordinate system */}
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
