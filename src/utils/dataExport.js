@@ -1,6 +1,6 @@
 import { db } from '../context/WorkoutContext.jsx';
 
-const LOCALSTORAGE_KEYS = ['customExercises', 'sessions', 'workoutLogs', 'userProgress'];
+const LOCALSTORAGE_KEYS = ['sessions', 'workoutLogs', 'userProgress'];
 const EXPORT_VERSION = 1;
 
 /**
@@ -20,6 +20,7 @@ export async function exportAllData() {
 
     // Gather IndexedDB data
     const completedSessions = await db.completedSessions.toArray();
+    const customExercises = await db.exercises.filter(ex => ex.isCustom === true).toArray();
 
     const exportData = {
       version: EXPORT_VERSION,
@@ -27,6 +28,7 @@ export async function exportAllData() {
       localStorage: localStorageData,
       indexedDB: {
         completedSessions,
+        customExercises,
       },
     };
 
@@ -61,6 +63,19 @@ function validateImportData(data) {
   if (!data.localStorage || typeof data.localStorage !== 'object') {
     return { valid: false, error: 'Missing localStorage data' };
   }
+  if (data.indexedDB?.completedSessions?.length > 10000) {
+    return { valid: false, error: 'Import file is suspiciously large (over 10,000 sessions)' };
+  }
+  if (data.indexedDB?.customExercises?.length > 500) {
+    return { valid: false, error: 'Import file is suspiciously large (over 500 custom exercises)' };
+  }
+  if (data.indexedDB?.completedSessions) {
+    for (const session of data.indexedDB.completedSessions) {
+      if (!session.id || !session.date || !Array.isArray(session.entries)) {
+        return { valid: false, error: 'Corrupted session data found in import file' };
+      }
+    }
+  }
   return { valid: true };
 }
 
@@ -90,6 +105,9 @@ export async function importData(file) {
     if (data.indexedDB?.completedSessions?.length > 0) {
       await db.completedSessions.clear();
       await db.completedSessions.bulkPut(data.indexedDB.completedSessions);
+    }
+    if (data.indexedDB?.customExercises?.length > 0) {
+      await db.exercises.bulkPut(data.indexedDB.customExercises);
     }
 
     return { success: true, importedAt: data.exportedAt };

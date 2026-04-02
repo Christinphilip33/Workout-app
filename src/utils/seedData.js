@@ -7,23 +7,26 @@
 import { builtInExercises } from '../data/builtInExercises.js';
 
 export async function seedExerciseLibrary(db) {
-  // ALWAYS verify IndexedDB has exercises — localStorage can persist while IDB gets cleared
   try {
+    await db.open();
     const count = await db.exercises.count();
     if (count >= 10) {
       return { success: true, message: 'Already seeded', count };
     }
-    // DB is empty or too small — force re-seed regardless of localStorage flag
     console.log('Exercise library empty or incomplete, seeding...');
   } catch (err) {
-    // IndexedDB might not be available (private browsing, etc.)
-    console.warn('IndexedDB check failed:', err.message);
+    console.warn('DB not ready or count failed, proceeding to seed:', err.message);
   }
 
-  // Clear stale flag if present
   localStorage.removeItem('library_seeded');
 
   const apiKey = import.meta.env.VITE_RAPIDAPI_KEY;
+  if (apiKey) {
+    console.warn(
+      '[SECURITY WARNING] VITE_RAPIDAPI_KEY is exposed in your client bundle. ' +
+      'Anyone can read it in DevTools. For production, proxy this through a backend server.'
+    );
+  }
 
   // ─── Strategy 1: Free built-in pack (default) ───
   if (!apiKey) {

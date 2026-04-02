@@ -26,35 +26,32 @@ export function useProgress() {
   }
 
   const logSession = (exerciseId) => {
-    // Read current snapshot synchronously so we can return a reliable result.
-    const current = userProgress[exerciseId] ?? defaultProgress()
-    const newTotalSessions = current.totalSessions + 1
-    const newLevel = getLevelFromSessions(newTotalSessions)
-    const leveledUp = newLevel > current.currentLevel
+    let result = { leveledUp: false, newLevel: null };
 
-    // Functional updater keeps the write side-effect correct even under batching.
     setUserProgress((prev) => {
-      const prevCurrent = prev[exerciseId] ?? defaultProgress()
-      const prevNewTotal = prevCurrent.totalSessions + 1
-      const prevNewLevel = getLevelFromSessions(prevNewTotal)
-      const prevLeveledUp = prevNewLevel > prevCurrent.currentLevel
+      const current = prev[exerciseId] ?? defaultProgress();
+      const newTotalSessions = current.totalSessions + 1;
+      const newLevel = getLevelFromSessions(newTotalSessions);
+      const leveledUp = newLevel > current.currentLevel;
 
-      const updatedBadges = prevLeveledUp
-        ? [...prevCurrent.badges, { level: prevNewLevel, earnedAt: new Date().toISOString() }]
-        : prevCurrent.badges
+      result = { leveledUp, newLevel: leveledUp ? newLevel : null };
+
+      const updatedBadges = leveledUp
+        ? [...current.badges, { level: newLevel, earnedAt: new Date().toISOString() }]
+        : current.badges;
 
       return {
         ...prev,
         [exerciseId]: {
-          ...prevCurrent,
-          totalSessions: prevNewTotal,
-          currentLevel: prevNewLevel,
+          ...current,
+          totalSessions: newTotalSessions,
+          currentLevel: newLevel,
           badges: updatedBadges,
         },
-      }
-    })
+      };
+    });
 
-    return { leveledUp, newLevel: leveledUp ? newLevel : null }
+    return result;
   }
 
   return { getProgress, updateWeight, logSession }

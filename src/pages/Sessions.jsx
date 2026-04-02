@@ -4,6 +4,7 @@ import { useSessions } from '../hooks/useSessions.js'
 import { useExercises } from '../hooks/useExercises.js'
 import { useWorkoutSync } from '../context/WorkoutContext.jsx'
 import { CATEGORIES } from '../data/exercises.js'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 function SessionModal({ allExercises, onSave, onClose, initialName = '', initialSelectedIds = [] }) {
   const [name, setName] = useState(initialName)
@@ -145,6 +146,7 @@ export default function Sessions() {
   const { startSessionFromTemplate } = useWorkoutSync()
   const [showModal, setShowModal] = useState(false)
   const [editingSession, setEditingSession] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
 
   const handleSave = (data) => {
     if (editingSession) {
@@ -167,9 +169,7 @@ export default function Sessions() {
   }
 
   const handleDelete = (session) => {
-    if (window.confirm(`Delete session "${session.name}"?`)) {
-      deleteSession(session.id)
-    }
+    setConfirmDelete(session);
   }
 
   const handleStart = async (session) => {
@@ -189,6 +189,13 @@ export default function Sessions() {
 
   return (
     <div>
+      {confirmDelete && (
+        <ConfirmDialog
+          message={`Delete session "${confirmDelete.name}"? This cannot be undone.`}
+          onConfirm={() => { deleteSession(confirmDelete.id); setConfirmDelete(null); }}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
       {showModal && (
         <SessionModal
           allExercises={allExercises}

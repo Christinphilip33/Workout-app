@@ -15,14 +15,14 @@ export const calculate1RM = (weight, reps) => {
   if (!weight || !reps || reps <= 0) return 0;
   if (reps === 1) return weight;
 
-  // Epley Formula: 1RM = weight * (1 + reps/30)
   const epley = weight * (1 + reps / 30);
-  
-  // Brzycki Formula: 1RM = weight * (36 / (37 - reps))
-  // Default to Epley if reps > 36 to avoid negative/infinity, though formula only accurate for low reps.
-  const brzycki = weight * (36 / Math.max(1, (37 - reps)));
 
-  return Math.round(((epley + brzycki) / 2) * 10) / 10; // Round to 1 decimal place
+  if (reps > 12) {
+    return Math.round(epley * 10) / 10;
+  }
+
+  const brzycki = weight * (36 / (37 - reps));
+  return Math.round(((epley + brzycki) / 2) * 10) / 10;
 };
 
 /**

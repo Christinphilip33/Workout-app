@@ -24,7 +24,7 @@ export default function ActiveWorkout() {
   const navigate = useNavigate()
   const { addWorkoutLog } = useSessions()
   const { logSession, getProgress } = useProgress()
-  const { activeSession, finishSessionOfflineSafe, saveActiveSession } = useWorkoutSync()
+  const { activeSession, finishSessionOfflineSafe, saveActiveSession, clearActiveSession } = useWorkoutSync()
   const { checkPR, getAutoRegulationInsights } = useIntelligence()
 
   // Rest timer state
@@ -66,7 +66,8 @@ export default function ActiveWorkout() {
 
   const handleAddSet = async (exerciseId, set) => {
     // Check for PR using local Dexie Intelligence
-    const prCheck = await checkPR(exerciseId, set)
+    const exercise = exercises.find(ex => ex.id === exerciseId);
+    const prCheck = await checkPR(exerciseId, set, exercise?.sets ?? []);
     if (prCheck.isNewPR) {
       setPrDetails(prCheck)
       setShowPRModal(true)
@@ -387,7 +388,7 @@ export default function ActiveWorkout() {
           Finish Workout
         </button>
         <button
-          onClick={finishSessionOfflineSafe}
+          onClick={async () => { await clearActiveSession(); navigate('/'); }}
           className="w-full mt-2 text-gray-500 hover:text-white text-sm py-2 transition-colors"
         >
           Discard Session

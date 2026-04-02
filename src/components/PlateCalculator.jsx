@@ -20,9 +20,9 @@ const PlateCalculator = ({ targetWeight }) => {
     const platesNeeded = [];
     
     for (const plate of availablePlates) {
-      while (weightPerSide >= plate) {
+      while (weightPerSide >= plate - 0.001) {
         platesNeeded.push(plate);
-        weightPerSide -= plate;
+        weightPerSide = Math.round((weightPerSide - plate) * 1000) / 1000;
       }
     }
     

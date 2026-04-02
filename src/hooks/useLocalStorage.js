@@ -15,8 +15,10 @@ export function useLocalStorage(key, initialValue) {
       const valueToStore = value instanceof Function ? value(storedValue) : value
       setStoredValue(valueToStore)
       localStorage.setItem(key, JSON.stringify(valueToStore))
-    } catch {
-      // silently ignore write errors (e.g. private browsing quota)
+    } catch (err) {
+      console.error(`localStorage write failed for key "${key}":`, err)
+      const valueToStore = value instanceof Function ? value(storedValue) : value
+      setStoredValue(valueToStore)
     }
   }
 

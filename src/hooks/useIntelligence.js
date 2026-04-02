@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../context/WorkoutContext.jsx';
 import { calculate1RM, calculateVolume } from '../utils/performanceMath.js';
@@ -13,16 +12,8 @@ const ADAPTATION_RPE_DROP_THRESHOLD = 1.5;
  * Provides local AI/Intelligence insights based on IndexedDB history.
  */
 export function useIntelligence() {
-  const [completedSessions, setCompletedSessions] = useState([]);
+  const completedSessions = useLiveQuery(() => db.completedSessions.toArray(), [], []);
   const allExercises = useLiveQuery(() => db.exercises.toArray(), [], []);
-
-  useEffect(() => {
-    const loadHistory = async () => {
-      const history = await db.completedSessions.toArray();
-      setCompletedSessions(history);
-    };
-    loadHistory();
-  }, []);
 
   /**
    * Heatmap Data Generator
@@ -88,17 +79,22 @@ export function useIntelligence() {
    * Compares the new set against historical sets in Dexie.
    * Runs locally, highly performant.
    */
-  const checkPR = async (exerciseId, newSet) => {
+  const checkPR = async (exerciseId, newSet, currentSessionSets = []) => {
     if (!newSet.weight || !newSet.reps) return { isNewPR: false };
-    
+
     const new1RM = calculate1RM(newSet.weight, newSet.reps);
     let historicalBest1RM = 0;
     let historicalMaxWeight = 0;
 
+    currentSessionSets.forEach(set => {
+      const past1RM = calculate1RM(set.weight, set.reps);
+      if (past1RM > historicalBest1RM) historicalBest1RM = past1RM;
+      if (set.weight > historicalMaxWeight) historicalMaxWeight = set.weight;
+    });
+
     const history = await db.completedSessions.toArray();
-    
     history.forEach(session => {
-      const entry = session.entries.find(e => e.exerciseId === exerciseId);
+      const entry = session.entries?.find(e => e.exerciseId === exerciseId);
       if (entry) {
         entry.sets.forEach(set => {
           const past1RM = calculate1RM(set.weight, set.reps);
@@ -111,7 +107,6 @@ export function useIntelligence() {
     if (new1RM > historicalBest1RM && historicalBest1RM > 0) {
       return { isNewPR: true, type: '1RM', value: new1RM };
     }
-    
     if (newSet.weight > historicalMaxWeight && historicalMaxWeight > 0) {
       return { isNewPR: true, type: 'Weight', value: newSet.weight };
     }

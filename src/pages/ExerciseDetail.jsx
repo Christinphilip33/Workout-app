@@ -10,6 +10,7 @@ import TipCard from '../components/TipCard.jsx'
 import PerformanceChart from '../components/PerformanceChart.jsx'
 import { LEVEL_THRESHOLDS, getNextThreshold } from '../utils/levels.js'
 import { useIntelligence } from '../hooks/useIntelligence.js'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const CATEGORY_COLORS = {
   Push:   'bg-orange-500/10 text-orange-400 border-orange-500/20',
@@ -39,6 +40,7 @@ export default function ExerciseDetail() {
     progress?.currentWeight > 0 ? String(progress.currentWeight) : ''
   )
   const [weightSaved, setWeightSaved] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   if (!exercise) {
     return (
@@ -70,14 +72,18 @@ export default function ExerciseDetail() {
   }
 
   const handleDelete = () => {
-    if (window.confirm(`Delete "${exercise.name}"?`)) {
-      deleteCustomExercise(exercise.id)
-      navigate('/exercises')
-    }
+    setShowDeleteConfirm(true);
   }
 
   return (
     <div className="max-w-2xl">
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          message={`Delete "${exercise.name}"? This cannot be undone.`}
+          onConfirm={() => { deleteCustomExercise(exercise.id); navigate('/exercises'); }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
       {/* Back */}
       <button
         onClick={() => navigate('/exercises')}
