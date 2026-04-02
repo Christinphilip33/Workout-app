@@ -1,300 +1,366 @@
 /**
- * MuscleMap - Anatomically detailed SVG body diagram
- * Shows front & back views with realistic muscle definition
- * Highlighted muscles glow in green, dark theme compatible
+ * MuscleMap - Anatomically accurate line-art body diagram
+ * Clean outline style matching professional fitness app anatomy illustrations
+ * Dark-theme adapted: light gray outlines, green fill on highlighted muscles
  * 100% local SVG — zero external APIs or costs
  */
 
-// Map muscle group names to SVG region IDs
 const MUSCLE_REGION_MAP = {
-  // Chest
-  'Chest': ['chest-l', 'chest-r'],
-  'Upper Chest': ['chest-l', 'chest-r'],
-  'Lower Chest': ['chest-l', 'chest-r'],
-  'Pectorals': ['chest-l', 'chest-r'],
+  'Chest': ['pec-l', 'pec-r'],
+  'Upper Chest': ['pec-l', 'pec-r'],
+  'Lower Chest': ['pec-l', 'pec-r'],
+  'Pectorals': ['pec-l', 'pec-r'],
 
-  // Shoulders
-  'Shoulders': ['delt-l', 'delt-r'],
-  'Front Deltoids': ['delt-l', 'delt-r'],
-  'Lateral Deltoids': ['delt-l', 'delt-r'],
-  'Rear Delts': ['rear-delt-l', 'rear-delt-r'],
-  'Rear Deltoids': ['rear-delt-l', 'rear-delt-r'],
-  'Rotator Cuff': ['rear-delt-l', 'rear-delt-r'],
+  'Shoulders': ['delt-front-l', 'delt-front-r', 'delt-rear-l', 'delt-rear-r'],
+  'Front Deltoids': ['delt-front-l', 'delt-front-r'],
+  'Lateral Deltoids': ['delt-front-l', 'delt-front-r', 'delt-rear-l', 'delt-rear-r'],
+  'Rear Delts': ['delt-rear-l', 'delt-rear-r'],
+  'Rear Deltoids': ['delt-rear-l', 'delt-rear-r'],
+  'Rotator Cuff': ['delt-rear-l', 'delt-rear-r'],
 
-  // Arms
   'Arms': ['bicep-l', 'bicep-r', 'tricep-l', 'tricep-r'],
   'Biceps': ['bicep-l', 'bicep-r'],
   'Triceps': ['tricep-l', 'tricep-r'],
-  'Forearms': ['forearm-l', 'forearm-r'],
+  'Forearms': ['forearm-front-l', 'forearm-front-r', 'forearm-back-l', 'forearm-back-r'],
 
-  // Back
   'Back': ['upper-back', 'lat-l', 'lat-r', 'lower-back'],
   'Upper Back': ['upper-back'],
   'Lats': ['lat-l', 'lat-r'],
-  'Traps': ['trap-l', 'trap-r'],
+  'Traps': ['trap'],
   'Rhomboids': ['upper-back'],
   'Lower Back': ['lower-back'],
 
-  // Core
   'Core': ['abs', 'oblique-l', 'oblique-r'],
   'Abs': ['abs'],
   'Obliques': ['oblique-l', 'oblique-r'],
   'Hip Flexors': ['hip-l', 'hip-r'],
 
-  // Legs
   'Legs': ['quad-l', 'quad-r', 'ham-l', 'ham-r'],
   'Quads': ['quad-l', 'quad-r'],
   'Quadriceps': ['quad-l', 'quad-r'],
   'Hamstrings': ['ham-l', 'ham-r'],
   'Glutes': ['glute-l', 'glute-r'],
 
-  // Calves
-  'Calves': ['calf-l', 'calf-r'],
+  'Calves': ['calf-front-l', 'calf-front-r', 'calf-back-l', 'calf-back-r'],
+
+  'Adductors': ['adductor-l', 'adductor-r'],
 }
 
-// Muscle group helper
-function MuscleRegion({ id, d, activeRegions, transform }) {
-  const isActive = activeRegions.has(id)
+function MR({ id, d, active, outline }) {
+  const isActive = active.has(id)
   return (
     <path
       d={d}
-      transform={transform}
-      fill={isActive ? '#22c55e' : '#374151'}
-      stroke={isActive ? '#4ade80' : '#4b5563'}
-      strokeWidth="0.6"
+      fill={isActive ? 'rgba(34,197,94,0.35)' : 'transparent'}
+      stroke={isActive ? '#4ade80' : (outline || '#6b7280')}
+      strokeWidth={isActive ? '0.9' : '0.6'}
+      strokeLinejoin="round"
+      strokeLinecap="round"
       style={{
-        transition: 'fill 0.3s, stroke 0.3s',
-        filter: isActive ? 'drop-shadow(0 0 4px rgba(34,197,94,0.5))' : 'none',
+        transition: 'fill 0.3s ease, stroke 0.3s ease',
+        filter: isActive ? 'drop-shadow(0 0 3px rgba(34,197,94,0.4))' : 'none',
       }}
     />
   )
 }
 
-// Muscle definition lines (the anatomical detail lines within muscles)
-function DefinitionLine({ d, activeRegions, regionId }) {
-  const isActive = activeRegions.has(regionId)
+// Detail / definition lines within muscle groups
+function DL({ d, active, id, outline }) {
+  const isActive = active.has(id)
   return (
     <path
       d={d}
       fill="none"
-      stroke={isActive ? '#16a34a' : '#4b5563'}
-      strokeWidth="0.35"
-      opacity={isActive ? 0.7 : 0.4}
-      style={{ transition: 'stroke 0.3s, opacity 0.3s' }}
+      stroke={isActive ? '#22c55e' : (outline || '#4b5563')}
+      strokeWidth="0.4"
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      opacity={isActive ? 0.8 : 0.5}
     />
   )
 }
 
+// Body outline (non-muscle structural lines)
+function BL({ d }) {
+  return <path d={d} fill="none" stroke="#6b7280" strokeWidth="0.6" strokeLinejoin="round" strokeLinecap="round" />
+}
+
 export default function MuscleMap({ highlightedMuscles }) {
   const muscles = highlightedMuscles || []
-  const activeRegions = new Set()
-  muscles.forEach(muscle => {
-    const regions = MUSCLE_REGION_MAP[muscle] || []
-    regions.forEach(r => activeRegions.add(r))
+  const a = new Set()
+  muscles.forEach(m => {
+    const regions = MUSCLE_REGION_MAP[m] || []
+    regions.forEach(r => a.add(r))
   })
 
   return (
-    <div className="flex justify-center gap-6 sm:gap-10 py-2">
-      {/* ────── FRONT VIEW ────── */}
+    <div className="flex justify-center gap-8 sm:gap-14 py-4">
+      {/* ═══════════════════ FRONT VIEW ═══════════════════ */}
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500 mb-3 font-medium tracking-wider uppercase">Front</span>
-        <svg viewBox="0 0 120 220" className="w-28 h-48 sm:w-36 sm:h-60">
-          {/* Head */}
-          <ellipse cx="60" cy="16" rx="11" ry="13" fill="#4b5563" stroke="#6b7280" strokeWidth="0.5"/>
-          {/* Neck */}
-          <path d="M53 28 L53 36 Q60 38 67 36 L67 28" fill="#4b5563" stroke="#6b7280" strokeWidth="0.4"/>
+        <span className="text-[11px] text-gray-500 mb-3 font-semibold tracking-widest uppercase">Front</span>
+        <svg viewBox="0 0 200 420" className="w-32 h-56 sm:w-44 sm:h-[310px]">
+          {/* ── HEAD ── */}
+          <ellipse cx="100" cy="24" rx="16" ry="20" fill="none" stroke="#6b7280" strokeWidth="0.7"/>
+          {/* Jawline */}
+          <BL d="M84 28 Q90 40 100 42 Q110 40 116 28" />
 
-          {/* ── TRAPS ── */}
-          <MuscleRegion id="trap-l" d="M53 34 L42 38 L38 44 L42 44 L53 40 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="trap-r" d="M67 34 L78 38 L82 44 L78 44 L67 40 Z" activeRegions={activeRegions} />
-          <DefinitionLine d="M47 38 L50 36" activeRegions={activeRegions} regionId="trap-l" />
-          <DefinitionLine d="M73 38 L70 36" activeRegions={activeRegions} regionId="trap-r" />
+          {/* ── NECK ── */}
+          <BL d="M90 42 L88 56" />
+          <BL d="M110 42 L112 56" />
+          {/* Sternocleidomastoid */}
+          <DL d="M92 44 L96 54" active={a} id="trap" />
+          <DL d="M108 44 L104 54" active={a} id="trap" />
 
-          {/* ── SHOULDERS / DELTS ── */}
-          <MuscleRegion id="delt-l" d="M38 44 L26 46 L22 52 L24 60 L30 62 L38 54 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="delt-r" d="M82 44 L94 46 L98 52 L96 60 L90 62 L82 54 Z" activeRegions={activeRegions} />
+          {/* ── TRAPS (FRONT VIEW) ── */}
+          <MR id="trap" d="M88 56 L76 60 L68 66 L74 66 L88 60 Z M112 56 L124 60 L132 66 L126 66 L112 60 Z" active={a} />
+
+          {/* ── DELTOIDS (FRONT) ── */}
+          <MR id="delt-front-l" d="M68 66 L56 70 L48 80 L50 92 L58 96 L68 88 L74 78 L74 66 Z" active={a} />
+          <MR id="delt-front-r" d="M132 66 L144 70 L152 80 L150 92 L142 96 L132 88 L126 78 L126 66 Z" active={a} />
           {/* Delt striations */}
-          <DefinitionLine d="M30 48 L28 55" activeRegions={activeRegions} regionId="delt-l" />
-          <DefinitionLine d="M34 47 L32 56" activeRegions={activeRegions} regionId="delt-l" />
-          <DefinitionLine d="M90 48 L92 55" activeRegions={activeRegions} regionId="delt-r" />
-          <DefinitionLine d="M86 47 L88 56" activeRegions={activeRegions} regionId="delt-r" />
+          <DL d="M60 74 L56 86" active={a} id="delt-front-l" />
+          <DL d="M66 72 L62 86" active={a} id="delt-front-l" />
+          <DL d="M140 74 L144 86" active={a} id="delt-front-r" />
+          <DL d="M134 72 L138 86" active={a} id="delt-front-r" />
 
-          {/* ── CHEST / PECS ── */}
-          <MuscleRegion id="chest-l" d="M42 44 L53 42 L58 48 L58 62 L52 68 L38 66 L30 62 L38 54 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="chest-r" d="M78 44 L67 42 L62 48 L62 62 L68 68 L82 66 L90 62 L82 54 Z" activeRegions={activeRegions} />
-          {/* Pec striations */}
-          <DefinitionLine d="M44 50 L54 56" activeRegions={activeRegions} regionId="chest-l" />
-          <DefinitionLine d="M42 54 L52 60" activeRegions={activeRegions} regionId="chest-l" />
-          <DefinitionLine d="M40 58 L50 64" activeRegions={activeRegions} regionId="chest-l" />
-          <DefinitionLine d="M76 50 L66 56" activeRegions={activeRegions} regionId="chest-r" />
-          <DefinitionLine d="M78 54 L68 60" activeRegions={activeRegions} regionId="chest-r" />
-          <DefinitionLine d="M80 58 L70 64" activeRegions={activeRegions} regionId="chest-r" />
-          {/* Sternum line */}
-          <path d="M60 42 L60 68" fill="none" stroke="#1f2937" strokeWidth="0.8" opacity="0.6"/>
+          {/* ── PECTORALS ── */}
+          <MR id="pec-l" d="M74 66 L88 60 L98 66 L98 84 L94 96 L82 102 L68 98 L58 96 L68 88 L74 78 Z" active={a} />
+          <MR id="pec-r" d="M126 66 L112 60 L102 66 L102 84 L106 96 L118 102 L132 98 L142 96 L132 88 L126 78 Z" active={a} />
+          {/* Pec fiber lines */}
+          <DL d="M72 74 L92 82" active={a} id="pec-l" />
+          <DL d="M70 80 L90 88" active={a} id="pec-l" />
+          <DL d="M68 86 L88 94" active={a} id="pec-l" />
+          <DL d="M128 74 L108 82" active={a} id="pec-r" />
+          <DL d="M130 80 L110 88" active={a} id="pec-r" />
+          <DL d="M132 86 L112 94" active={a} id="pec-r" />
+          {/* Center chest line (sternum) */}
+          <BL d="M100 60 L100 102" />
 
           {/* ── BICEPS ── */}
-          <MuscleRegion id="bicep-l" d="M24 62 L20 66 L16 78 L18 88 L22 90 L28 86 L30 74 L28 64 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="bicep-r" d="M96 62 L100 66 L104 78 L102 88 L98 90 L92 86 L90 74 L92 64 Z" activeRegions={activeRegions} />
-          {/* Bicep peak line */}
-          <DefinitionLine d="M22 70 L22 82" activeRegions={activeRegions} regionId="bicep-l" />
-          <DefinitionLine d="M98 70 L98 82" activeRegions={activeRegions} regionId="bicep-r" />
+          <MR id="bicep-l" d="M50 96 L46 102 L40 118 L42 136 L48 140 L56 134 L60 120 L58 104 Z" active={a} />
+          <MR id="bicep-r" d="M150 96 L154 102 L160 118 L158 136 L152 140 L144 134 L140 120 L142 104 Z" active={a} />
+          {/* Bicep peak */}
+          <DL d="M48 106 L46 130" active={a} id="bicep-l" />
+          <DL d="M52 104 L50 128" active={a} id="bicep-l" />
+          <DL d="M152 106 L154 130" active={a} id="bicep-r" />
+          <DL d="M148 104 L150 128" active={a} id="bicep-r" />
 
-          {/* ── FOREARMS ── */}
-          <MuscleRegion id="forearm-l" d="M18 90 L14 98 L12 112 L14 118 L20 118 L24 108 L26 96 L22 90 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="forearm-r" d="M102 90 L106 98 L108 112 L106 118 L100 118 L96 108 L94 96 L98 90 Z" activeRegions={activeRegions} />
-          <DefinitionLine d="M18 96 L16 110" activeRegions={activeRegions} regionId="forearm-l" />
-          <DefinitionLine d="M102 96 L104 110" activeRegions={activeRegions} regionId="forearm-r" />
+          {/* ── FOREARMS (FRONT) ── */}
+          <MR id="forearm-front-l" d="M42 140 L36 150 L30 172 L28 190 L32 196 L40 196 L46 182 L50 164 L52 148 L48 140 Z" active={a} />
+          <MR id="forearm-front-r" d="M158 140 L164 150 L170 172 L172 190 L168 196 L160 196 L154 182 L150 164 L148 148 L152 140 Z" active={a} />
+          <DL d="M38 148 L34 180" active={a} id="forearm-front-l" />
+          <DL d="M44 146 L40 176" active={a} id="forearm-front-l" />
+          <DL d="M162 148 L166 180" active={a} id="forearm-front-r" />
+          <DL d="M156 146 L160 176" active={a} id="forearm-front-r" />
 
-          {/* ── ABS ── */}
-          <MuscleRegion id="abs" d="M52 68 L58 68 L62 68 L68 68 L70 78 L70 98 L66 106 L60 108 L54 106 L50 98 L50 78 Z" activeRegions={activeRegions} />
-          {/* Ab segmentation lines */}
-          <DefinitionLine d="M60 68 L60 106" activeRegions={activeRegions} regionId="abs" />
-          <DefinitionLine d="M52 74 L68 74" activeRegions={activeRegions} regionId="abs" />
-          <DefinitionLine d="M51 82 L69 82" activeRegions={activeRegions} regionId="abs" />
-          <DefinitionLine d="M52 90 L68 90" activeRegions={activeRegions} regionId="abs" />
-          <DefinitionLine d="M53 98 L67 98" activeRegions={activeRegions} regionId="abs" />
+          {/* Hands */}
+          <BL d="M28 196 L24 212 L28 216 L32 214 L34 210 L36 214 L38 210 L40 214 L42 210 L44 206 L40 196" />
+          <BL d="M172 196 L176 212 L172 216 L168 214 L166 210 L164 214 L162 210 L160 214 L158 210 L156 206 L160 196" />
 
-          {/* ── OBLIQUES ── (SERRATUS + OBLIQUES) */}
-          <MuscleRegion id="oblique-l" d="M38 66 L50 78 L50 98 L54 106 L46 112 L36 104 L32 88 L34 72 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="oblique-r" d="M82 66 L70 78 L70 98 L66 106 L74 112 L84 104 L88 88 L86 72 Z" activeRegions={activeRegions} />
-          {/* Serratus striations */}
-          <DefinitionLine d="M38 68 L46 76" activeRegions={activeRegions} regionId="oblique-l" />
-          <DefinitionLine d="M36 74 L44 82" activeRegions={activeRegions} regionId="oblique-l" />
-          <DefinitionLine d="M35 80 L42 88" activeRegions={activeRegions} regionId="oblique-l" />
-          <DefinitionLine d="M82 68 L74 76" activeRegions={activeRegions} regionId="oblique-r" />
-          <DefinitionLine d="M84 74 L76 82" activeRegions={activeRegions} regionId="oblique-r" />
-          <DefinitionLine d="M85 80 L78 88" activeRegions={activeRegions} regionId="oblique-r" />
+          {/* ── SERRATUS / OBLIQUES ── */}
+          <MR id="oblique-l" d="M68 98 L82 102 L94 96 L94 108 L92 130 L90 142 L84 150 L74 148 L66 136 L62 118 L64 104 Z" active={a} />
+          <MR id="oblique-r" d="M132 98 L118 102 L106 96 L106 108 L108 130 L110 142 L116 150 L126 148 L134 136 L138 118 L136 104 Z" active={a} />
+          {/* Serratus interdigitations */}
+          <DL d="M68 100 L80 110" active={a} id="oblique-l" />
+          <DL d="M66 108 L78 118" active={a} id="oblique-l" />
+          <DL d="M64 116 L76 126" active={a} id="oblique-l" />
+          <DL d="M66 124 L76 134" active={a} id="oblique-l" />
+          <DL d="M132 100 L120 110" active={a} id="oblique-r" />
+          <DL d="M134 108 L122 118" active={a} id="oblique-r" />
+          <DL d="M136 116 L124 126" active={a} id="oblique-r" />
+          <DL d="M134 124 L124 134" active={a} id="oblique-r" />
 
-          {/* ── HIP FLEXORS ── */}
-          <MuscleRegion id="hip-l" d="M46 112 L54 108 L56 116 L48 120 L40 118 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="hip-r" d="M74 112 L66 108 L64 116 L72 120 L80 118 Z" activeRegions={activeRegions} />
+          {/* ── RECTUS ABDOMINIS ── */}
+          <MR id="abs" d="M94 96 L106 96 L108 108 L110 130 L110 148 L106 158 L100 162 L94 158 L90 148 L90 130 L92 108 Z" active={a} />
+          {/* Linea alba (center line) */}
+          <DL d="M100 96 L100 158" active={a} id="abs" />
+          {/* Tendinous inscriptions (6-pack lines) */}
+          <DL d="M92 106 L108 106" active={a} id="abs" />
+          <DL d="M91 118 L109 118" active={a} id="abs" />
+          <DL d="M91 130 L109 130" active={a} id="abs" />
+          <DL d="M92 142 L108 142" active={a} id="abs" />
+          {/* Lower abs V-line */}
+          <DL d="M94 148 L100 162 L106 148" active={a} id="abs" />
 
-          {/* ── QUADS ── */}
-          <MuscleRegion id="quad-l" d="M40 118 L48 120 L56 116 L58 124 L56 150 L54 164 L50 168 L44 168 L38 164 L35 148 L34 130 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="quad-r" d="M80 118 L72 120 L64 116 L62 124 L64 150 L66 164 L70 168 L76 168 L82 164 L85 148 L86 130 Z" activeRegions={activeRegions} />
-          {/* Quad separation lines - rectus femoris / vastus */}
-          <DefinitionLine d="M47 122 L48 162" activeRegions={activeRegions} regionId="quad-l" />
-          <DefinitionLine d="M42 124 L40 158" activeRegions={activeRegions} regionId="quad-l" />
-          <DefinitionLine d="M52 120 L54 160" activeRegions={activeRegions} regionId="quad-l" />
-          <DefinitionLine d="M73 122 L72 162" activeRegions={activeRegions} regionId="quad-r" />
-          <DefinitionLine d="M78 124 L80 158" activeRegions={activeRegions} regionId="quad-r" />
-          <DefinitionLine d="M68 120 L66 160" activeRegions={activeRegions} regionId="quad-r" />
+          {/* ── HIP FLEXORS / ILIAC ── */}
+          <MR id="hip-l" d="M74 148 L84 150 L90 148 L94 158 L92 168 L82 172 L72 168 L68 158 Z" active={a} />
+          <MR id="hip-r" d="M126 148 L116 150 L110 148 L106 158 L108 168 L118 172 L128 168 L132 158 Z" active={a} />
 
-          {/* Knee joint */}
-          <path d="M38 168 Q47 174 56 168" fill="none" stroke="#4b5563" strokeWidth="0.5" opacity="0.5"/>
-          <path d="M64 168 Q73 174 82 168" fill="none" stroke="#4b5563" strokeWidth="0.5" opacity="0.5"/>
+          {/* ── ADDUCTORS ── */}
+          <MR id="adductor-l" d="M82 172 L92 168 L96 180 L98 210 L96 230 L92 236 L86 230 L84 210 L82 190 Z" active={a} />
+          <MR id="adductor-r" d="M118 172 L108 168 L104 180 L102 210 L104 230 L108 236 L114 230 L116 210 L118 190 Z" active={a} />
+
+          {/* ── QUADRICEPS ── */}
+          <MR id="quad-l" d="M72 168 L82 172 L82 190 L84 220 L86 250 L88 274 L84 280 L76 282 L68 278 L64 268 L62 248 L62 228 L64 200 L66 180 Z" active={a} />
+          <MR id="quad-r" d="M128 168 L118 172 L118 190 L116 220 L114 250 L112 274 L116 280 L124 282 L132 278 L136 268 L138 248 L138 228 L136 200 L134 180 Z" active={a} />
+          {/* Quad muscle separations: rectus femoris, vastus lateralis, vastus medialis */}
+          <DL d="M76 176 L78 270" active={a} id="quad-l" />
+          <DL d="M70 180 L68 264" active={a} id="quad-l" />
+          <DL d="M82 188 L84 260" active={a} id="quad-l" />
+          <DL d="M124 176 L122 270" active={a} id="quad-r" />
+          <DL d="M130 180 L132 264" active={a} id="quad-r" />
+          <DL d="M118 188 L116 260" active={a} id="quad-r" />
+
+          {/* ── KNEECAP ── */}
+          <ellipse cx="78" cy="286" rx="8" ry="6" fill="none" stroke="#6b7280" strokeWidth="0.5"/>
+          <ellipse cx="122" cy="286" rx="8" ry="6" fill="none" stroke="#6b7280" strokeWidth="0.5"/>
 
           {/* ── CALVES (FRONT - TIBIALIS) ── */}
-          <MuscleRegion id="calf-l" d="M40 172 L50 170 L52 186 L50 200 L46 206 L40 206 L38 198 L38 182 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="calf-r" d="M80 172 L70 170 L68 186 L70 200 L74 206 L80 206 L82 198 L82 182 Z" activeRegions={activeRegions} />
-          <DefinitionLine d="M44 176 L44 200" activeRegions={activeRegions} regionId="calf-l" />
-          <DefinitionLine d="M76 176 L76 200" activeRegions={activeRegions} regionId="calf-r" />
+          <MR id="calf-front-l" d="M68 292 L84 292 L88 306 L88 340 L86 360 L82 372 L74 372 L68 360 L66 340 L66 310 Z" active={a} />
+          <MR id="calf-front-r" d="M132 292 L116 292 L112 306 L112 340 L114 360 L118 372 L126 372 L132 360 L134 340 L134 310 Z" active={a} />
+          {/* Tibialis anterior / shin line */}
+          <DL d="M76 296 L76 366" active={a} id="calf-front-l" />
+          <DL d="M124 296 L124 366" active={a} id="calf-front-r" />
 
-          {/* Feet */}
-          <ellipse cx="46" cy="212" rx="8" ry="4" fill="#374151" stroke="#4b5563" strokeWidth="0.4"/>
-          <ellipse cx="74" cy="212" rx="8" ry="4" fill="#374151" stroke="#4b5563" strokeWidth="0.4"/>
+          {/* ── ANKLES & FEET ── */}
+          <BL d="M70 372 L68 384 L64 392 L86 392 L84 384 L82 372" />
+          <BL d="M118 372 L116 384 L114 392 L136 392 L134 384 L132 372" />
+
+          {/* Body outline connectors */}
+          <BL d="M98 162 L98 172 Q100 178 102 172 L102 162" />
         </svg>
       </div>
 
-      {/* ────── BACK VIEW ────── */}
+      {/* ═══════════════════ BACK VIEW ═══════════════════ */}
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500 mb-3 font-medium tracking-wider uppercase">Back</span>
-        <svg viewBox="0 0 120 220" className="w-28 h-48 sm:w-36 sm:h-60">
-          {/* Head */}
-          <ellipse cx="60" cy="16" rx="11" ry="13" fill="#4b5563" stroke="#6b7280" strokeWidth="0.5"/>
-          {/* Neck */}
-          <path d="M53 28 L53 36 Q60 38 67 36 L67 28" fill="#4b5563" stroke="#6b7280" strokeWidth="0.4"/>
+        <span className="text-[11px] text-gray-500 mb-3 font-semibold tracking-widest uppercase">Back</span>
+        <svg viewBox="0 0 200 420" className="w-32 h-56 sm:w-44 sm:h-[310px]">
+          {/* ── HEAD ── */}
+          <ellipse cx="100" cy="24" rx="16" ry="20" fill="none" stroke="#6b7280" strokeWidth="0.7"/>
+          {/* Ear lines */}
+          <BL d="M84 24 L82 22 L82 28 L84 26" />
+          <BL d="M116 24 L118 22 L118 28 L116 26" />
 
-          {/* ── TRAPS ── */}
-          <MuscleRegion id="trap-l" d="M53 34 L44 38 L36 44 L38 50 L48 48 L53 42 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="trap-r" d="M67 34 L76 38 L84 44 L82 50 L72 48 L67 42 Z" activeRegions={activeRegions} />
-          {/* Trap fibers */}
-          <DefinitionLine d="M48 38 L42 44" activeRegions={activeRegions} regionId="trap-l" />
-          <DefinitionLine d="M50 40 L44 46" activeRegions={activeRegions} regionId="trap-l" />
-          <DefinitionLine d="M72 38 L78 44" activeRegions={activeRegions} regionId="trap-r" />
-          <DefinitionLine d="M70 40 L76 46" activeRegions={activeRegions} regionId="trap-r" />
+          {/* ── NECK ── */}
+          <BL d="M90 42 L88 56" />
+          <BL d="M110 42 L112 56" />
 
-          {/* ── REAR DELTS ── */}
-          <MuscleRegion id="rear-delt-l" d="M36 44 L24 48 L22 54 L26 62 L32 62 L38 54 L38 50 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="rear-delt-r" d="M84 44 L96 48 L98 54 L94 62 L88 62 L82 54 L82 50 Z" activeRegions={activeRegions} />
-          <DefinitionLine d="M30 50 L28 58" activeRegions={activeRegions} regionId="rear-delt-l" />
-          <DefinitionLine d="M34 49 L32 58" activeRegions={activeRegions} regionId="rear-delt-l" />
-          <DefinitionLine d="M90 50 L92 58" activeRegions={activeRegions} regionId="rear-delt-r" />
-          <DefinitionLine d="M86 49 L88 58" activeRegions={activeRegions} regionId="rear-delt-r" />
+          {/* ── TRAPEZIUS ── */}
+          <MR id="trap" d="M88 48 L78 52 L66 62 L56 70 L60 74 L74 68 L88 60 L98 56 L100 54 L102 56 L112 60 L126 68 L140 74 L144 70 L134 62 L122 52 L112 48 L104 44 L100 42 L96 44 Z" active={a} />
+          {/* Trap fiber lines */}
+          <DL d="M100 44 L82 58" active={a} id="trap" />
+          <DL d="M100 44 L118 58" active={a} id="trap" />
+          <DL d="M98 50 L74 66" active={a} id="trap" />
+          <DL d="M102 50 L126 66" active={a} id="trap" />
+          <DL d="M96 54 L66 70" active={a} id="trap" />
+          <DL d="M104 54 L134 70" active={a} id="trap" />
 
-          {/* ── UPPER BACK (RHOMBOIDS / MID-TRAPS) ── */}
-          <MuscleRegion id="upper-back" d="M48 48 L38 54 L38 68 L46 74 L54 72 L58 64 L58 48 Z M72 48 L82 54 L82 68 L74 74 L66 72 L62 64 L62 48 Z" activeRegions={activeRegions} />
+          {/* ── REAR DELTOIDS ── */}
+          <MR id="delt-rear-l" d="M56 70 L44 76 L40 86 L44 98 L52 100 L60 94 L66 82 L66 72 L60 74 Z" active={a} />
+          <MR id="delt-rear-r" d="M144 70 L156 76 L160 86 L156 98 L148 100 L140 94 L134 82 L134 72 L140 74 Z" active={a} />
+          <DL d="M50 80 L48 94" active={a} id="delt-rear-l" />
+          <DL d="M56 78 L54 92" active={a} id="delt-rear-l" />
+          <DL d="M150 80 L152 94" active={a} id="delt-rear-r" />
+          <DL d="M144 78 L146 92" active={a} id="delt-rear-r" />
+
+          {/* ── INFRASPINATUS / TERES / UPPER BACK ── */}
+          <MR id="upper-back" d="M74 68 L88 60 L98 56 L100 56 L102 56 L112 60 L126 68 L132 78 L128 90 L120 96 L108 96 L102 88 L100 86 L98 88 L92 96 L80 96 L72 90 L68 78 Z" active={a} />
           {/* Spine */}
-          <path d="M60 36 L60 108" fill="none" stroke="#1f2937" strokeWidth="1" opacity="0.5"/>
-          {/* Rhomboid fibers */}
-          <DefinitionLine d="M58 52 L44 58" activeRegions={activeRegions} regionId="upper-back" />
-          <DefinitionLine d="M58 58 L44 64" activeRegions={activeRegions} regionId="upper-back" />
-          <DefinitionLine d="M62 52 L76 58" activeRegions={activeRegions} regionId="upper-back" />
-          <DefinitionLine d="M62 58 L76 64" activeRegions={activeRegions} regionId="upper-back" />
-
-          {/* ── LATS ── */}
-          <MuscleRegion id="lat-l" d="M38 62 L28 66 L26 78 L30 92 L38 96 L46 90 L48 78 L46 74 L38 68 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="lat-r" d="M82 62 L92 66 L94 78 L90 92 L82 96 L74 90 L72 78 L74 74 L82 68 Z" activeRegions={activeRegions} />
-          {/* Lat fibers */}
-          <DefinitionLine d="M34 68 L42 82" activeRegions={activeRegions} regionId="lat-l" />
-          <DefinitionLine d="M32 74 L38 86" activeRegions={activeRegions} regionId="lat-l" />
-          <DefinitionLine d="M30 80 L36 90" activeRegions={activeRegions} regionId="lat-l" />
-          <DefinitionLine d="M86 68 L78 82" activeRegions={activeRegions} regionId="lat-r" />
-          <DefinitionLine d="M88 74 L82 86" activeRegions={activeRegions} regionId="lat-r" />
-          <DefinitionLine d="M90 80 L84 90" activeRegions={activeRegions} regionId="lat-r" />
+          <path d="M100 42 L100 170" fill="none" stroke="#4b5563" strokeWidth="0.8" opacity="0.6"/>
+          {/* Infraspinatus line */}
+          <DL d="M74 78 L92 86" active={a} id="upper-back" />
+          <DL d="M126 78 L108 86" active={a} id="upper-back" />
+          {/* Teres major */}
+          <DL d="M70 84 L82 92" active={a} id="upper-back" />
+          <DL d="M130 84 L118 92" active={a} id="upper-back" />
+          {/* Rhomboid lines */}
+          <DL d="M98 64 L82 76" active={a} id="upper-back" />
+          <DL d="M102 64 L118 76" active={a} id="upper-back" />
+          <DL d="M98 72 L84 84" active={a} id="upper-back" />
+          <DL d="M102 72 L116 84" active={a} id="upper-back" />
 
           {/* ── TRICEPS ── */}
-          <MuscleRegion id="tricep-l" d="M26 62 L20 68 L16 80 L18 90 L22 92 L28 88 L30 78 L30 66 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="tricep-r" d="M94 62 L100 68 L104 80 L102 90 L98 92 L92 88 L90 78 L90 66 Z" activeRegions={activeRegions} />
-          {/* Tricep heads */}
-          <DefinitionLine d="M24 68 L22 84" activeRegions={activeRegions} regionId="tricep-l" />
-          <DefinitionLine d="M96 68 L98 84" activeRegions={activeRegions} regionId="tricep-r" />
+          <MR id="tricep-l" d="M44 98 L38 106 L34 122 L36 140 L42 144 L50 138 L54 124 L54 108 L52 100 Z" active={a} />
+          <MR id="tricep-r" d="M156 98 L162 106 L166 122 L164 140 L158 144 L150 138 L146 124 L146 108 L148 100 Z" active={a} />
+          {/* Tricep heads separation */}
+          <DL d="M46 106 L42 134" active={a} id="tricep-l" />
+          <DL d="M50 104 L48 130" active={a} id="tricep-l" />
+          <DL d="M154 106 L158 134" active={a} id="tricep-r" />
+          <DL d="M150 104 L152 130" active={a} id="tricep-r" />
 
           {/* ── FOREARMS (BACK) ── */}
-          <MuscleRegion id="forearm-l" d="M18 92 L14 100 L12 114 L14 118 L20 118 L24 108 L24 96 L22 92 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="forearm-r" d="M102 92 L106 100 L108 114 L106 118 L100 118 L96 108 L96 96 L98 92 Z" activeRegions={activeRegions} />
+          <MR id="forearm-back-l" d="M36 144 L30 154 L26 176 L24 194 L28 200 L36 200 L42 186 L46 168 L48 152 L42 144 Z" active={a} />
+          <MR id="forearm-back-r" d="M164 144 L170 154 L174 176 L176 194 L172 200 L164 200 L158 186 L154 168 L152 152 L158 144 Z" active={a} />
+          <DL d="M34 152 L30 184" active={a} id="forearm-back-l" />
+          <DL d="M40 150 L36 180" active={a} id="forearm-back-l" />
+          <DL d="M166 152 L170 184" active={a} id="forearm-back-r" />
+          <DL d="M160 150 L164 180" active={a} id="forearm-back-r" />
 
-          {/* ── LOWER BACK (ERECTORS) ── */}
-          <MuscleRegion id="lower-back" d="M48 78 L54 72 L58 72 L62 72 L66 72 L72 78 L74 90 L70 104 L60 108 L50 104 L46 90 Z" activeRegions={activeRegions} />
-          {/* Erector spinae lines */}
-          <DefinitionLine d="M56 76 L54 100" activeRegions={activeRegions} regionId="lower-back" />
-          <DefinitionLine d="M64 76 L66 100" activeRegions={activeRegions} regionId="lower-back" />
+          {/* Hands */}
+          <BL d="M24 200 L20 216 L24 220 L28 218 L30 214 L32 218 L34 214 L36 218 L38 214 L40 208 L36 200" />
+          <BL d="M176 200 L180 216 L176 220 L172 218 L170 214 L168 218 L166 214 L164 218 L162 214 L160 208 L164 200" />
+
+          {/* ── LATISSIMUS DORSI ── */}
+          <MR id="lat-l" d="M60 94 L52 100 L48 110 L48 124 L52 140 L60 150 L72 156 L84 148 L88 134 L90 118 L88 102 L80 96 L72 90 L66 82 Z" active={a} />
+          <MR id="lat-r" d="M140 94 L148 100 L152 110 L152 124 L148 140 L140 150 L128 156 L116 148 L112 134 L110 118 L112 102 L120 96 L128 90 L134 82 Z" active={a} />
+          {/* Lat fiber lines */}
+          <DL d="M62 92 L74 120" active={a} id="lat-l" />
+          <DL d="M58 100 L68 128" active={a} id="lat-l" />
+          <DL d="M54 110 L64 138" active={a} id="lat-l" />
+          <DL d="M52 120 L62 146" active={a} id="lat-l" />
+          <DL d="M138 92 L126 120" active={a} id="lat-r" />
+          <DL d="M142 100 L132 128" active={a} id="lat-r" />
+          <DL d="M146 110 L136 138" active={a} id="lat-r" />
+          <DL d="M148 120 L138 146" active={a} id="lat-r" />
+
+          {/* ── LOWER BACK / ERECTORS ── */}
+          <MR id="lower-back" d="M88 102 L92 96 L100 92 L108 96 L112 102 L114 120 L112 140 L108 156 L100 162 L92 156 L88 140 L86 120 Z" active={a} />
+          {/* Erector spinae columns */}
+          <DL d="M96 100 L94 152" active={a} id="lower-back" />
+          <DL d="M104 100 L106 152" active={a} id="lower-back" />
+          {/* Horizontal fascial lines */}
+          <DL d="M90 116 L110 116" active={a} id="lower-back" />
+          <DL d="M90 132 L110 132" active={a} id="lower-back" />
+          <DL d="M92 146 L108 146" active={a} id="lower-back" />
 
           {/* ── GLUTES ── */}
-          <MuscleRegion id="glute-l" d="M38 96 L50 104 L58 108 L58 122 L52 126 L40 124 L34 118 L34 104 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="glute-r" d="M82 96 L70 104 L62 108 L62 122 L68 126 L80 124 L86 118 L86 104 Z" activeRegions={activeRegions} />
-          {/* Glute fibers */}
-          <DefinitionLine d="M40 104 L50 116" activeRegions={activeRegions} regionId="glute-l" />
-          <DefinitionLine d="M44 100 L52 112" activeRegions={activeRegions} regionId="glute-l" />
-          <DefinitionLine d="M80 104 L70 116" activeRegions={activeRegions} regionId="glute-r" />
-          <DefinitionLine d="M76 100 L68 112" activeRegions={activeRegions} regionId="glute-r" />
+          <MR id="glute-l" d="M60 150 L72 156 L84 148 L92 156 L98 164 L98 182 L92 190 L78 192 L66 186 L58 174 L56 162 Z" active={a} />
+          <MR id="glute-r" d="M140 150 L128 156 L116 148 L108 156 L102 164 L102 182 L108 190 L122 192 L134 186 L142 174 L144 162 Z" active={a} />
+          {/* Glute fiber lines */}
+          <DL d="M66 160 L84 178" active={a} id="glute-l" />
+          <DL d="M62 168 L80 184" active={a} id="glute-l" />
+          <DL d="M70 156 L86 172" active={a} id="glute-l" />
+          <DL d="M134 160 L116 178" active={a} id="glute-r" />
+          <DL d="M138 168 L120 184" active={a} id="glute-r" />
+          <DL d="M130 156 L114 172" active={a} id="glute-r" />
+          {/* Glute cleft */}
+          <BL d="M98 164 Q100 180 102 164" />
 
           {/* ── HAMSTRINGS ── */}
-          <MuscleRegion id="ham-l" d="M34 124 L40 126 L52 126 L56 130 L56 156 L52 168 L44 170 L38 168 L34 156 L32 140 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="ham-r" d="M86 124 L80 126 L68 126 L64 130 L64 156 L68 168 L76 170 L82 168 L86 156 L88 140 Z" activeRegions={activeRegions} />
-          {/* Hamstring separation (bicep femoris / semitendinosus) */}
-          <DefinitionLine d="M46 128 L46 166" activeRegions={activeRegions} regionId="ham-l" />
-          <DefinitionLine d="M40 130 L38 162" activeRegions={activeRegions} regionId="ham-l" />
-          <DefinitionLine d="M74 128 L74 166" activeRegions={activeRegions} regionId="ham-r" />
-          <DefinitionLine d="M80 130 L82 162" activeRegions={activeRegions} regionId="ham-r" />
+          <MR id="ham-l" d="M58 192 L78 192 L92 190 L96 200 L96 240 L94 268 L90 282 L82 284 L72 282 L66 272 L62 252 L58 228 L56 208 Z" active={a} />
+          <MR id="ham-r" d="M142 192 L122 192 L108 190 L104 200 L104 240 L106 268 L110 282 L118 284 L128 282 L134 272 L138 252 L142 228 L144 208 Z" active={a} />
+          {/* Hamstring separations: biceps femoris / semitendinosus / semimembranosus */}
+          <DL d="M80 196 L82 278" active={a} id="ham-l" />
+          <DL d="M70 198 L68 274" active={a} id="ham-l" />
+          <DL d="M88 194 L90 270" active={a} id="ham-l" />
+          <DL d="M120 196 L118 278" active={a} id="ham-r" />
+          <DL d="M130 198 L132 274" active={a} id="ham-r" />
+          <DL d="M112 194 L110 270" active={a} id="ham-r" />
 
           {/* Knee crease */}
-          <path d="M38 170 Q47 174 56 170" fill="none" stroke="#4b5563" strokeWidth="0.5" opacity="0.5"/>
-          <path d="M64 170 Q73 174 82 170" fill="none" stroke="#4b5563" strokeWidth="0.5" opacity="0.5"/>
+          <BL d="M64 284 Q78 292 92 284" />
+          <BL d="M108 284 Q122 292 136 284" />
 
           {/* ── CALVES (BACK - GASTROCNEMIUS) ── */}
-          <MuscleRegion id="calf-l" d="M36 174 L44 172 L52 174 L54 186 L52 198 L48 206 L42 206 L36 198 L34 186 Z" activeRegions={activeRegions} />
-          <MuscleRegion id="calf-r" d="M84 174 L76 172 L68 174 L66 186 L68 198 L72 206 L78 206 L84 198 L86 186 Z" activeRegions={activeRegions} />
-          {/* Calf separation (medial / lateral head) */}
-          <DefinitionLine d="M44 176 L46 200" activeRegions={activeRegions} regionId="calf-l" />
-          <DefinitionLine d="M76 176 L74 200" activeRegions={activeRegions} regionId="calf-r" />
-          {/* Gastrocnemius diamond shape */}
-          <DefinitionLine d="M38 180 L44 186 L50 180" activeRegions={activeRegions} regionId="calf-l" />
-          <DefinitionLine d="M70 180 L76 186 L82 180" activeRegions={activeRegions} regionId="calf-r" />
+          <MR id="calf-back-l" d="M62 290 L78 288 L92 290 L94 310 L92 336 L88 358 L82 370 L74 370 L66 358 L62 336 L60 310 Z" active={a} />
+          <MR id="calf-back-r" d="M138 290 L122 288 L108 290 L106 310 L108 336 L112 358 L118 370 L126 370 L134 358 L138 336 L140 310 Z" active={a} />
+          {/* Gastrocnemius medial/lateral head separation */}
+          <DL d="M78 292 L80 362" active={a} id="calf-back-l" />
+          <DL d="M122 292 L120 362" active={a} id="calf-back-r" />
+          {/* Diamond shape of gastrocnemius */}
+          <DL d="M66 298 L78 310 L90 298" active={a} id="calf-back-l" />
+          <DL d="M110 298 L122 310 L134 298" active={a} id="calf-back-r" />
+          {/* Soleus line */}
+          <DL d="M68 330 Q78 338 88 330" active={a} id="calf-back-l" />
+          <DL d="M112 330 Q122 338 132 330" active={a} id="calf-back-r" />
 
-          {/* Feet */}
-          <ellipse cx="46" cy="212" rx="8" ry="4" fill="#374151" stroke="#4b5563" strokeWidth="0.4"/>
-          <ellipse cx="74" cy="212" rx="8" ry="4" fill="#374151" stroke="#4b5563" strokeWidth="0.4"/>
+          {/* Achilles tendon */}
+          <BL d="M78 368 L76 384 L78 390" />
+          <BL d="M122 368 L124 384 L122 390" />
+
+          {/* ── ANKLES & FEET ── */}
+          <BL d="M68 370 L66 384 L62 394 L90 394 L88 384 L86 370" />
+          <BL d="M114 370 L112 384 L110 394 L138 394 L136 384 L134 370" />
         </svg>
       </div>
     </div>
