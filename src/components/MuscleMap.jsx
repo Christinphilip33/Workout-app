@@ -174,23 +174,25 @@ const BACK_REGIONS = [
   { id: 'calf-back', points: '57,80 53,78 51,80 51,88 52,92 56,92 57,88' },
 ]
 
-function OverlayRegion({ points, isActive }) {
+function OverlayRegion({ points, isActive, debug = false }) {
+  // Debug mode shows all regions faintly for calibration
+  const showRegion = isActive || debug
   return (
     <polygon
       points={points}
-      fill={isActive ? 'rgba(34, 197, 94, 0.4)' : 'transparent'}
-      stroke={isActive ? 'rgba(74, 222, 128, 0.6)' : 'transparent'}
+      fill={isActive ? 'rgba(239, 68, 68, 0.4)' : debug ? 'rgba(100, 100, 100, 0.15)' : 'transparent'}
+      stroke={showRegion ? (isActive ? 'rgba(248, 113, 113, 0.6)' : 'rgba(255, 255, 255, 0.3)') : 'transparent'}
       strokeWidth="0.3"
       strokeLinejoin="round"
       style={{
         transition: 'fill 0.4s ease, stroke 0.4s ease',
-        filter: isActive ? 'drop-shadow(0 0 4px rgba(34,197,94,0.45))' : 'none',
+        filter: isActive ? 'drop-shadow(0 0 4px rgba(239,68,68,0.45))' : 'none',
       }}
     />
   )
 }
 
-function BodyView({ label, imageSrc, regions, activeRegions }) {
+function BodyView({ label, imageSrc, regions, activeRegions, debug = false }) {
   return (
     <div className="flex flex-col items-center">
       <span className="text-[11px] text-gray-500 mb-2 font-semibold tracking-widest uppercase">
@@ -216,6 +218,7 @@ function BodyView({ label, imageSrc, regions, activeRegions }) {
               key={`${region.id}-${i}`}
               points={region.points}
               isActive={activeRegions.has(region.id)}
+              debug={debug}
             />
           ))}
         </svg>
@@ -224,7 +227,7 @@ function BodyView({ label, imageSrc, regions, activeRegions }) {
   )
 }
 
-export default function MuscleMap({ highlightedMuscles }) {
+export default function MuscleMap({ highlightedMuscles, debug = false }) {
   const muscles = highlightedMuscles || []
   const activeRegions = new Set()
   muscles.forEach(muscle => {
@@ -239,12 +242,14 @@ export default function MuscleMap({ highlightedMuscles }) {
         imageSrc="/images/body-front.png"
         regions={FRONT_REGIONS}
         activeRegions={activeRegions}
+        debug={debug}
       />
       <BodyView
         label="Back"
         imageSrc="/images/body-back.png"
         regions={BACK_REGIONS}
         activeRegions={activeRegions}
+        debug={debug}
       />
     </div>
   )

@@ -108,7 +108,7 @@ export default function ExerciseDetail() {
       {/* Muscle Diagram */}
       <div className="glass-card rounded-2xl p-4 mb-6">
         <MuscleMap highlightedMuscles={exercise.muscleGroups || []} />
-        <p className="text-center text-xs text-gray-500">Target muscles highlighted in green</p>
+        <p className="text-center text-xs text-gray-500">Target muscles highlighted in red</p>
       </div>
 
       {/* Description */}

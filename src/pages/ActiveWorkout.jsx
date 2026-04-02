@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSessions } from '../hooks/useSessions.js'
 import { useExercises } from '../hooks/useExercises.js'
@@ -16,6 +16,7 @@ import PlateCalculator from '../components/PlateCalculator.jsx'
 import PRModal from '../components/PRModal.jsx'
 import RestTimer from '../components/RestTimer.jsx'
 import { triggerHaptic } from '../utils/haptics.js'
+import { initAudio } from '../utils/audio.js'
 import { useWorkoutSync } from '../context/WorkoutContext.jsx'
 import { useIntelligence } from '../hooks/useIntelligence.js'
 
@@ -54,6 +55,21 @@ export default function ActiveWorkout() {
 
   // Rest timer picker state
   const [showRestPicker, setShowRestPicker] = useState(false)
+
+  // Initialize audio on first user interaction (required for autoplay policy)
+  useEffect(() => {
+    const handler = () => {
+      initAudio()
+      document.removeEventListener('click', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+    document.addEventListener('click', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('click', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+  }, [])
 
   // Handlers for Live Session Sets Updates
   const updateSessionState = (newExercisesState) => {
@@ -372,6 +388,7 @@ export default function ActiveWorkout() {
                 onAdd={(set) => handleAddSet(exercise.id, set)}
                 weightUnit={weightUnit}
                 onUnitToggle={toggleWeightUnit}
+                currentSetCount={exerciseSets.length}
               />
             </SortableExerciseCard>
           )

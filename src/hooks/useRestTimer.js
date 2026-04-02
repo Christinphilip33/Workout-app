@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { triggerHaptic } from '../utils/haptics.js'
+import { playTimerDone } from '../utils/audio.js'
 
 export function useRestTimer(onComplete) {
   const onCompleteRef = useRef(onComplete)
@@ -66,6 +67,7 @@ export function useRestTimer(onComplete) {
             setIsRunning(false)
             setIsPaused(false)
             triggerHaptic('REST_DONE')
+            playTimerDone()
             if (onCompleteRef.current) onCompleteRef.current()
             return 0
           }

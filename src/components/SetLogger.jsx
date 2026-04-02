@@ -7,8 +7,8 @@ const MAX_WEIGHT = 999
 const MAX_REPS = 100
 const MAX_SETS = 20
 
-export default function SetLogger({ defaultWeight = 0, onAdd, exerciseId, nextExerciseId, weightUnit, onUnitToggle }) {
-  const [sets, setSets] = useState('1')
+export default function SetLogger({ defaultWeight = 0, onAdd, exerciseId, nextExerciseId, weightUnit, onUnitToggle, currentSetCount = 0 }) {
+  const [sets, setSets] = useState(() => String(currentSetCount + 1))
   const [reps, setReps] = useState('')
   const [weight, setWeight] = useState(defaultWeight > 0 ? String(defaultWeight) : '')
   const { inputRefs, focusInput, focusNext } = useWorkoutFocus(3) // 0: sets, 1: reps, 2: weight
@@ -17,6 +17,11 @@ export default function SetLogger({ defaultWeight = 0, onAdd, exerciseId, nextEx
   useEffect(() => {
     focusInput(1) // Focus reps first since sets defaults to 1
   }, [focusInput])
+
+  // Sync set number when currentSetCount changes (after adding sets)
+  useEffect(() => {
+    setSets(String(currentSetCount + 1))
+  }, [currentSetCount])
 
   const handleAdd = () => {
     const s = Math.min(parseInt(sets, 10) || 1, MAX_SETS)
@@ -31,7 +36,7 @@ export default function SetLogger({ defaultWeight = 0, onAdd, exerciseId, nextEx
     }
     triggerHaptic('LOGGED')
 
-    setSets('1')
+    // Don't reset sets - useEffect will auto-increment based on currentSetCount
     setReps('')
     // Superset boundary jump or stay on current weight for next set
     if (nextExerciseId) {
